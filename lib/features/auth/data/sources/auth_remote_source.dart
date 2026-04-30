@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 abstract class AuthRemoteSource {
@@ -30,30 +31,30 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     required Function(String verificationId) onCodeSent,
     required Function(String error) onError,
   }) async {
-    print('=== sendOTP called with: $phoneNumber ===');
+    debugPrint('=== sendOTP called with: $phoneNumber ===');
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) {
-          print('=== verificationCompleted ===');
+          debugPrint('=== verificationCompleted ===');
         },
         verificationFailed: (FirebaseAuthException e) {
-          print('=== verificationFailed: ${e.code} | ${e.message} ===');
+          debugPrint('=== verificationFailed: ${e.code} | ${e.message} ===');
           onError(e.message ?? 'Verification failed');
         },
         codeSent: (String verificationId, int? resendToken) {
-          print('=== codeSent successfully ===');
+          debugPrint('=== codeSent successfully ===');
           onCodeSent(verificationId);
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          print('=== codeAutoRetrievalTimeout ===');
+          debugPrint('=== codeAutoRetrievalTimeout ===');
           // Only navigate if we haven't already
           onCodeSent(verificationId);
         },
       );
     } catch (e) {
-      print('=== sendOTP exception: $e ===');
+      debugPrint('=== sendOTP exception: $e ===');
       onError(e.toString());
     }
   }

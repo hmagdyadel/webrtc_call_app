@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:injectable/injectable.dart';
 import '../data/repositories/auth_repository.dart';
 import 'auth_state.dart';
@@ -14,13 +13,8 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> checkAuthStatus() async {
     emit(const AuthState.loading());
     try {
-      print('=== checkAuthStatus start ===');
-      print('isLoggedIn: ${_repository.isLoggedIn}');
-
       if (_repository.isLoggedIn) {
         final user = await _repository.getCurrentUser();
-        print('=== user from firestore: $user ===');
-
         if (user != null) {
           emit(AuthState.authenticated(user: user));
         } else {
@@ -32,7 +26,6 @@ class AuthCubit extends Cubit<AuthState> {
         emit(const AuthState.unauthenticated());
       }
     } catch (e) {
-      print('=== checkAuthStatus error: $e ===');
       await _repository.signOut();
       emit(const AuthState.unauthenticated());
     }
@@ -43,12 +36,10 @@ class AuthCubit extends Cubit<AuthState> {
     await _repository.sendOTP(
       phoneNumber: phoneNumber,
       onCodeSent: (verificationId) {
-        print('=== Cubit: emitting otpSent ===');
         _verificationId = verificationId;
         Future.microtask(() => emit(const AuthState.otpSent()));
       },
       onError: (error) {
-        print('=== Cubit: emitting error: $error ===');
         Future.microtask(() => emit(AuthState.error(message: error)));
       },
     );
@@ -70,7 +61,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> sendOTPWithCallback({
     required String phoneNumber,
-    required VoidCallback onCodeSent,
+    required Function() onCodeSent,
     required Function(String) onError,
   }) async {
     emit(const AuthState.sendingOtp()); // ← not loading

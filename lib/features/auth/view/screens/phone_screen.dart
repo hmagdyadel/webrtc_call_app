@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../viewmodel/auth_cubit.dart';
@@ -32,6 +33,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
     }
 
     setState(() => _isLoading = true);
+    EasyLoading.show(status: 'Sending OTP...');
 
     final fullPhone = '$_countryCode$phone';
     final cubit = context.read<AuthCubit>();
@@ -39,17 +41,16 @@ class _PhoneScreenState extends State<PhoneScreen> {
     await cubit.sendOTPWithCallback(
       phoneNumber: fullPhone,
       onCodeSent: () {
-        print('=== onCodeSent callback fired, mounted: $mounted ===');
+        EasyLoading.dismiss();
         if (!mounted) return;
         setState(() => _isLoading = false);
         context.push(AppRoutePaths.otp, extra: fullPhone);
       },
       onError: (error) {
+        EasyLoading.dismiss();
+        EasyLoading.showError(error);
         if (!mounted) return;
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error), backgroundColor: Colors.red),
-        );
       },
     );
   }
@@ -146,9 +147,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
+                child: const Text(
                   'Continue',
                   style: TextStyle(
                     color: Colors.white,

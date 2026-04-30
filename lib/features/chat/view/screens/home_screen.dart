@@ -115,8 +115,9 @@ class _ChatsTab extends StatelessWidget {
           builder: (context, state) {
             return state.when(
               initial: () => const SizedBox(),
-              loading: () =>
-              const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(
+                child: Text('Loading chats...', style: TextStyle(color: Colors.grey)),
+              ),
               loaded: (chats) => chats.isEmpty
                   ? const Center(
                   child: Text('No chats yet',

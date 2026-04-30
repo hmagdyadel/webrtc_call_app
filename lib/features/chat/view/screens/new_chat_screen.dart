@@ -61,7 +61,12 @@ class _NewChatScreenState extends State<NewChatScreen> {
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: Text(
+                'Loading users...',
+                style: TextStyle(color: Colors.grey),
+              ),
+            )
           : _users.isEmpty
           ? const Center(
           child: Text('No other users found',

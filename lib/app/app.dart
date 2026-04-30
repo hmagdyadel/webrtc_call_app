@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../core/di/injection.dart';
+import '../core/utils/onboarding_store.dart';
 import '../features/auth/viewmodel/auth_cubit.dart';
 import 'router/app_router.dart';
 
@@ -14,7 +16,8 @@ class App extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final authCubit = context.read<AuthCubit>();
-          final router = createAppRouter(authCubit);
+          final onboardingStore = getIt<OnboardingStore>();
+          final router = createAppRouter(authCubit, onboardingStore);
 
           return MaterialApp.router(
             title: 'Call App',
@@ -24,6 +27,7 @@ class App extends StatelessWidget {
               brightness: Brightness.dark,
               fontFamily: 'Roboto',
             ),
+            builder: EasyLoading.init(),
             routerConfig: router,
           );
         },

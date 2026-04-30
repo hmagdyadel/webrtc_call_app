@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../viewmodel/auth_cubit.dart';
@@ -40,17 +41,19 @@ class _OtpScreenState extends State<OtpScreen> {
       listener: (context, state) {
         state.when(
           initial: () {},
-          loading: () {},
+          loading: () {
+            EasyLoading.show(status: 'Verifying...');
+          },
           sendingOtp: () {},
           otpSent: () {},
           authenticated: (user) {
+            EasyLoading.dismiss();
             context.go(AppRoutePaths.home);
           },
           unauthenticated: () {},
           error: (message) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message), backgroundColor: Colors.red),
-            );
+            EasyLoading.dismiss();
+            EasyLoading.showError(message);
           },
         );
       },
@@ -103,31 +106,25 @@ class _OtpScreenState extends State<OtpScreen> {
               // Verify button
               BlocBuilder<AuthCubit, AuthState>(
                 builder: (context, state) {
-                  final isLoading = state.maybeWhen(
-                    loading: () => true,
-                    orElse: () => false,
-                  );
                   return SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: isLoading ? null : _onVerify,
+                      onPressed: _onVerify,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0F3460),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'Verify',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      child: const Text(
+                        'Verify',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   );
                 },

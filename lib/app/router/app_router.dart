@@ -2,35 +2,61 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/utils/onboarding_store.dart';
 import '../../features/auth/view/screens/otp_screen.dart';
 import '../../features/auth/view/screens/phone_screen.dart';
 import '../../features/auth/viewmodel/auth_cubit.dart';
 import '../../features/auth/viewmodel/auth_state.dart';
 import '../../features/chat/view/screens/home_screen.dart';
 import '../../features/chat/view/screens/new_chat_screen.dart';
+import '../../features/onboarding/view/onboarding_screen.dart';
+import '../../features/splash/view/splash_screen.dart';
 import '../../core/di/injection.dart';
 
 class AppRoutePaths {
+  static const splash = '/splash';
+  static const onboarding = '/onboarding';
   static const phone = '/auth/phone';
   static const otp = '/auth/otp';
   static const home = '/home';
   static const newChat = '/home/new-chat';
 }
 
-GoRouter createAppRouter(AuthCubit authCubit) {
+GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
   return GoRouter(
-    initialLocation: AppRoutePaths.phone,
-    refreshListenable: GoRouterRefreshStream(authCubit.stream),
+    initialLocation: AppRoutePaths.splash,
+    refreshListenable: GoRouterRefresh(authCubit.stream, onboardingStore),
     redirect: (context, state) {
       final authState = authCubit.state;
       final isLoggedIn = authState.whenOrNull(authenticated: (_) => true) ?? false;
+      final isSplashRoute = state.matchedLocation == AppRoutePaths.splash;
+      final isOnboardingRoute = state.matchedLocation == AppRoutePaths.onboarding;
       final isAuthRoute = state.matchedLocation.startsWith('/auth');
+      final isOnboardingSeen = onboardingStore.isSeen;
+
+      if (isSplashRoute) return null;
+
+      if (!isOnboardingSeen && !isOnboardingRoute) {
+        return AppRoutePaths.onboarding;
+      }
+      if (isOnboardingSeen && isOnboardingRoute) {
+        return isLoggedIn ? AppRoutePaths.home : AppRoutePaths.phone;
+      }
+      if (isOnboardingRoute) return null;
 
       if (!isLoggedIn && !isAuthRoute) return AppRoutePaths.phone;
       if (isLoggedIn && isAuthRoute) return AppRoutePaths.home;
       return null;
     },
     routes: [
+      GoRoute(
+        path: AppRoutePaths.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
       GoRoute(
         path: AppRoutePaths.phone,
         builder: (context, state) => const PhoneScreen(),
@@ -61,17 +87,21 @@ GoRouter createAppRouter(AuthCubit authCubit) {
   );
 }
 
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
+class GoRouterRefresh extends ChangeNotifier {
+  GoRouterRefresh(Stream<dynamic> stream, OnboardingStore onboardingStore) {
     _subscription = stream.asBroadcastStream().listen(
       (_) => notifyListeners(),
     );
+    onboardingStore.addListener(notifyListeners);
+    _onboardingStore = onboardingStore;
   }
 
   late final StreamSubscription<dynamic> _subscription;
+  late final OnboardingStore _onboardingStore;
 
   @override
   void dispose() {
+    _onboardingStore.removeListener(notifyListeners);
     _subscription.cancel();
     super.dispose();
   }
