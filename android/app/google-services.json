@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "946149045359",
+    "project_id": "webrtc-call-app-5a0db",
+    "storage_bucket": "webrtc-call-app-5a0db.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:946149045359:android:b64b407ebb770bda6ec99a",
+        "android_client_info": {
+          "package_name": "com.hmagdy.webrtc_call_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBW9hhLt7KYfn_FMZe-RVbhXtUmHrK3wVg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
