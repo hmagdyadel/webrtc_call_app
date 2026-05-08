@@ -20,6 +20,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   int _currentIndex = 0; // Chats tab default
+  late final ChatCubit _chatCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _chatCubit = getIt<ChatCubit>()..loadChats(widget.userId);
+  }
+
+  @override
+  void dispose() {
+    _chatCubit.close();
+    super.dispose();
+  }
 
   late final List<Widget> _screens = [
     _ChatsTab(userId: widget.userId),
@@ -31,51 +44,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgDark,
-      body: _screens[_currentIndex],
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) => setState(() => _currentIndex = index),
-          backgroundColor: AppColors.navBackground,
-          selectedItemColor: AppColors.navSelected,
-          unselectedItemColor: AppColors.navUnselected,
+    return BlocProvider.value(
+      value: _chatCubit,
+      child: Scaffold(
+        backgroundColor: AppColors.bgDark,
+        body: _screens[_currentIndex],
+        bottomNavigationBar: Theme(
+          data: Theme.of(context).copyWith(
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+            backgroundColor: AppColors.navBackground,
+            selectedItemColor: AppColors.navSelected,
+            unselectedItemColor: AppColors.navUnselected,
 
-          selectedFontSize: 11,
-          unselectedFontSize: 11,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline),
-              activeIcon: Icon(Icons.chat_bubble),
-              label: 'Chats',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.phone_outlined),
-              activeIcon: Icon(Icons.phone),
-              label: 'Calls',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined),
-              activeIcon: Icon(Icons.explore),
-              label: 'Explore',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.contacts_outlined),
-              activeIcon: Icon(Icons.contacts),
-              label: 'Contacts',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Me',
-            ),
-          ],
+            selectedFontSize: 11,
+            unselectedFontSize: 11,
+            type: BottomNavigationBarType.fixed,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_outline),
+                activeIcon: Icon(Icons.chat_bubble),
+                label: 'Chats',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.phone_outlined),
+                activeIcon: Icon(Icons.phone),
+                label: 'Calls',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.explore_outlined),
+                activeIcon: Icon(Icons.explore),
+                label: 'Explore',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.contacts_outlined),
+                activeIcon: Icon(Icons.contacts),
+                label: 'Contacts',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Me',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -88,58 +104,55 @@ class _ChatsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<ChatCubit>()..loadChats(userId),
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: AppColors.bgDark,
+      appBar: AppBar(
         backgroundColor: AppColors.bgDark,
-        appBar: AppBar(
-          backgroundColor: AppColors.bgDark,
-          elevation: 0,
-          title: const Text('Chats',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold)),
-          actions: [
-            IconButton(
-                icon: const Icon(Icons.search, color: Colors.white),
-                onPressed: () {}),
-            IconButton(
-              icon: const Icon(Icons.add, color: Colors.white),
-              onPressed: () async {
-                await context.push(AppRoutePaths.newChat);
+        elevation: 0,
+        title: const Text('Chats',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.search, color: Colors.white),
+              onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () async {
+              await context.push(AppRoutePaths.newChat);
+            },
+          ),
+        ],
+      ),
+      body: BlocBuilder<ChatCubit, ChatState>(
+        builder: (context, state) {
+          return state.when(
+            initial: () => const SizedBox(),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
+            loaded: (chats) => chats.isEmpty
+                ? const Center(
+                child: Text('No chats yet',
+                    style: TextStyle(color: AppColors.textHint)))
+                : ListView.builder(
+              itemCount: chats.length,
+              itemBuilder: (context, index) {
+                final chat = chats[index];
+                final otherId = chat.members
+                    .firstWhere((m) => m != userId);
+                return _ChatTile(
+                    chat: chat,
+                    currentUserId: userId,
+                    otherId: otherId);
               },
             ),
-          ],
-        ),
-        body: BlocBuilder<ChatCubit, ChatState>(
-          builder: (context, state) {
-            return state.when(
-              initial: () => const SizedBox(),
-              loading: () => const Center(
-                child: Text('Loading chats...', style: TextStyle(color: Colors.grey)),
-              ),
-              loaded: (chats) => chats.isEmpty
-                  ? const Center(
-                  child: Text('No chats yet',
-                      style: TextStyle(color: Colors.grey)))
-                  : ListView.builder(
-                itemCount: chats.length,
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  final otherId = chat.members
-                      .firstWhere((m) => m != userId);
-                  return _ChatTile(
-                      chat: chat,
-                      currentUserId: userId,
-                      otherId: otherId);
-                },
-              ),
-              error: (msg) =>
-                  Center(child: Text(msg, style: const TextStyle(color: Colors.red))),
-            );
-          },
-        ),
+            error: (msg) =>
+                Center(child: Text(msg, style: const TextStyle(color: AppColors.missed))),
+          );
+        },
       ),
     );
   }
