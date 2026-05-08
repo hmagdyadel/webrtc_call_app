@@ -1,96 +1,133 @@
-# Progress Update
+# Sawa (سوا) — Progress Tracker
 
-## Completed This Session
-- Applied Sawa branding identity setup:
-  - `pubspec.yaml` package renamed to `sawa`.
-  - Android `applicationId` and namespace updated to `com.sawa.app`.
-  - Android launcher label updated to `Sawa`.
-  - iOS `CFBundleDisplayName` and `CFBundleName` updated to `Sawa`.
-  - iOS bundle identifiers updated to `com.sawa.app`.
-- Added Sawa theme system:
-  - Created `lib/app/theme/app_colors.dart`.
-  - Created `lib/app/theme/app_theme.dart` using `google_fonts` (`Plus Jakarta Sans`).
-  - Wired app theme in `lib/app/app.dart` and app title now `Sawa`.
-- Updated splash and onboarding to Sawa style content:
-  - Splash now uses branded Arabic/English text and Lottie playback timing.
-  - Onboarding now uses Arabic-first bilingual content and animation files:
-    - `assets/animations/onboarding_chat.json`
-    - `assets/animations/onboarding_voice.json`
-    - `assets/animations/onboarding_video.json`
-- Added package/asset setup from design guide:
-  - Added dependencies: `google_fonts`, `qr_flutter`, `mobile_scanner`, `cached_network_image`, `image_picker`, `firebase_storage`.
-  - Added `flutter_launcher_icons` config and dev dependency.
-  - Updated assets registration to folder-based:
-    - `assets/animations/`
-    - `assets/icons/`
-    - `assets/images/`
-  - Created `assets/icons/` and `assets/images/` directories.
-- Regenerated codegen after package rename:
-  - Ran `dart run build_runner build --delete-conflicting-outputs`.
-- Ran `flutter analyze` successfully with zero issues.
-- Updated onboarding to use three Lottie animations instead of static icon cards.
-  - Added and wired:
-    - `assets/animations/onboarding_chat.json`
-    - `assets/animations/onboarding_call.json`
-    - `assets/animations/onboarding_security.json`
-  - Updated `onboarding_screen.dart` page model to use `animationPath`.
-  - Registered onboarding animation assets in `pubspec.yaml`.
-- Fixed all analyzer issues reported in this session (14 total).
-  - Replaced/removed debug `print` calls across auth source/cubit/screen.
-  - Replaced broken default widget test with a valid placeholder unit test.
-- Ran `flutter analyze` successfully with zero issues.
-- Completed Phase 6b: integrated `flutter_easyloading`.
-  - Added `EasyLoading.init()` in `MaterialApp.router` builder.
-  - Updated auth flow to use HUD/toasts instead of inline spinners:
-    - `PhoneScreen`: `EasyLoading.show/dismiss/showError` for send OTP.
-    - `OtpScreen`: `EasyLoading.show/dismiss/showError` for verify OTP.
-- Completed Phase 6c: splash flow wiring.
-  - Added `lib/features/splash/view/splash_screen.dart`.
-  - Splash waits 2 seconds, then routes based on onboarding + auth state.
-  - Added `assets/animations/splash.json` and registered animation assets in `pubspec.yaml`.
-- Completed Phase 6e: onboarding with first-launch persistence.
-  - Added `lib/features/onboarding/view/onboarding_screen.dart` (3 pages + indicator + skip/get started).
-  - Added `lib/core/utils/onboarding_store.dart` and `lib/core/utils/constants.dart`.
-  - Persisted `onboarding_seen` in `SharedPreferences`.
-  - Registered `OnboardingStore` in `main.dart`.
-  - Updated router redirects to enforce onboarding completion before auth/home routes.
-- Extended router paths and guards:
-  - added `/splash` and `/onboarding`,
-  - initial route is now `/splash`,
-  - refresh now listens to both auth changes and onboarding state changes.
+## Phase Status Overview
 
-## Errors Encountered and Fixes
-- `flutter pub get` initially failed due to `firebase_storage ^12.x` incompatibility with current Firebase constraints.
-  - Fixed by upgrading to `firebase_storage ^13.3.0`.
-- Analyzer then reported missing `package:webrtc_call_app/...` imports in generated DI file after package rename.
-  - Fixed by re-running build_runner to regenerate `injection.config.dart`.
-- Initial analyzer run reported 14 issues (13 `avoid_print` infos + 1 invalid widget test reference).
-  - Fixed by removing/replacing prints and correcting test file content.
-- Re-ran analyzer after fixes: no issues found.
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1–4 | Infrastructure, Firebase, Auth, Home & Chat List | ✅ Complete |
+| 5 | Bug Fixes (icons, OTP loop, mounted, Firestore index) | ✅ Complete |
+| 6 | Navigation & UX Polish | ✅ Complete |
+| 7 | Chat Screen & Real Messaging | 🔲 Next |
+| 8 | QR Code | 🔲 Planned |
+| 9 | WebRTC Voice Calls | 🔲 Planned |
+| 10 | Video Calls | 🔲 Planned |
+| 11 | Push Notifications (FCM) | 🔲 Planned |
+| 12 | Native Call UI (CallKit/ConnectionService) | 🔲 Planned |
+| 13 | Profile & Settings | 🔲 Planned |
+| 14 | Contacts Sync | 🔲 Planned |
+| 15 | Production Hardening | 🔲 Planned |
 
-## Current App State
-- Works:
-  - Launch flow is now `splash -> onboarding (first launch only) -> phone/home`.
-  - Onboarding flag persists and is respected on future app launches.
-  - Onboarding pages now render bilingual Sawa copy and Lottie assets for Chat, Voice, and Video.
-  - Auth navigation and route protection still work under `go_router`.
-  - OTP send/verify now uses HUD loading + error toasts via EasyLoading.
-  - Sawa app naming and theme foundation are applied across app bootstrap and platform metadata.
-- Not done yet:
-  - Replace placeholder animation JSON files with final downloaded/recolored Lottie files from LottieFiles.
-  - Add real icon files:
-    - `assets/icons/app_icon.png`
-    - `assets/icons/app_icon_foreground.png`
-  - Run `dart run flutter_launcher_icons` after icon assets are provided.
-  - Run a full device flow test to validate onboarding animation rendering and route transitions.
+---
+
+## Phase 6 — Navigation & UX Polish ✅
+
+### 6a: go_router ✅
+- Replaced all `Navigator.push` with `go_router`
+- Auth guard redirect logic: splash → onboarding → auth/home
+- `GoRouterRefresh` listens to both auth stream and onboarding store
+
+### 6b: Rename to Sawa ✅
+- `pubspec.yaml` package renamed to `sawa`
+- Android `applicationId` + namespace → `com.sawa.app`
+- Android launcher label → `Sawa`
+- iOS `CFBundleDisplayName` + `CFBundleName` → `Sawa`
+- iOS bundle identifiers → `com.sawa.app`
+
+### 6c: Sawa theme ✅
+- Created `lib/app/theme/app_colors.dart` — full brand palette
+- Created `lib/app/theme/app_theme.dart` — `sawaTheme()` using Plus Jakarta Sans
+- Wired in `lib/app/app.dart`
+
+### 6d: google_fonts ✅
+- Plus Jakarta Sans integrated via `google_fonts` package
+
+### 6e: flutter_easyloading ✅
+- `EasyLoading.init()` in MaterialApp builder
+- Auth flow (PhoneScreen, OtpScreen) uses HUD/toast instead of inline spinners
+
+### 6f: Asset folders ✅
+- Registered `assets/animations/`, `assets/icons/`, `assets/images/` in pubspec
+- All animation files placed and referenced
+
+### 6g: App icon ✅
+- Generated Sawa icon: two overlapping speech bubbles (purple س + teal S)
+- Deep purple gradient background (#3D33A8 → #5B4FD4), white dot at overlap
+- SVG source at `assets/icons/sawa_icon.svg`
+- PNG at `assets/icons/app_icon.png` (1024×1024)
+- Adaptive foreground at `assets/icons/app_icon_foreground.png`
+- `dart run flutter_launcher_icons` — Android (adaptive + legacy) + iOS generated
+
+### 6h: Splash screen ✅
+- `SplashScreen` with Lottie animation + branded Arabic/English text
+- Routes based on onboarding + auth state after 2s delay
+
+### 6i: Onboarding ✅
+- 3-page onboarding with Lottie animations (chat, voice, video)
+- Arabic-first bilingual text
+- `SharedPreferences` flag for first-launch persistence
+- Skip/Get Started buttons with smooth page indicator
+
+### 6j: Home theme migration ✅
+- `HomeScreen` migrated from hardcoded blue/grey to `AppColors` system
+- NavigationBar, AppBar, FAB, ChatTile all use brand colors
+
+### Lottie Animations ✅
+- `splash.json` — 2.5s, two bubbles appear + ripple rings (no loop)
+- `onboarding_chat.json` — 3s, sent/received bubbles + typing dots (loop)
+- `onboarding_voice.json` — 3s, phone circle + ripple rings + 7 waveform bars (loop)
+- `onboarding_video.json` — 3.5s, two phone screens + connection dots + avatars (loop)
+- All use exact Sawa brand colors (#5B4FD4, #00C8A0, #7B6FEE)
+
+---
+
+## What Currently Exists (Code Inventory)
+
+### Auth Feature — FULLY WORKING
+- `UserModel` (Freezed) — id, phone, name, avatarUrl, isOnline, createdAt
+- `AuthRemoteSource` — Firebase Phone OTP send + verify
+- `UserRemoteSource` — Firestore user create + read
+- `AuthRepository` — orchestrates both sources
+- `AuthCubit` — 7 states (initial/loading/sendingOtp/otpSent/authenticated/unauthenticated/error)
+- `PhoneScreen` + `OtpScreen` — complete auth flow
+
+### Chat Feature — PARTIAL (list only, no messaging)
+- `ChatModel` (Freezed) — id, members, lastMessage, lastMessageSenderId, lastMessageTime, unreadCount
+- `ChatRemoteSource` — getChats stream, createOrGetChat
+- `ChatRepository` — delegates to source
+- `ChatCubit` + `ChatState` — loads chat list via Firestore stream
+- `HomeScreen` — 5-tab NavigationBar with chat list
+- `NewChatScreen` — lists registered users, creates/opens chats
+- ❌ No `MessageModel` yet
+- ❌ No `ChatScreen` yet
+- ❌ No message sending/receiving
+
+### Router
+- Routes: `/splash`, `/onboarding`, `/auth/phone`, `/auth/otp`, `/home`, `/home/new-chat`
+- ❌ Missing: `/home/chat/:chatId`
+
+---
+
+## Known Issues / Bugs
+- None currently — `flutter analyze` returns zero issues
+
+## Test Accounts
+| Phone | OTP | Firestore UID |
+|-------|-----|---------------|
+| +20 1125516481 | 123456 | GnNAYAP1W3YV9jwH7CRUtCa0VBv2 |
+
+---
 
 ## Exact Start Point for Next Session
-1. Run:
-   - `flutter run`
-2. Replace placeholder animation files in `assets/animations/` with final branded Lottie files from LottieFiles.
-3. Add icon files in `assets/icons/` and run `dart run flutter_launcher_icons`.
-4. Verify Android/iOS launch names, bundle IDs, and icon on device builds.
+1. **Phase 7 — Chat Screen & Real Messaging**
+   - Create `MessageModel` (Freezed)
+   - Add message methods to `ChatRemoteSource` + `ChatRepository`
+   - Create `MessageCubit` + `MessageState`
+   - Build `ChatScreen` UI with Sawa-branded message bubbles
+   - Add `/home/chat/:chatId` route
+   - Wire chat tile tap → navigate to ChatScreen
+   - Run `dart run build_runner build --delete-conflicting-outputs`
+   - Test on Samsung device: two devices exchange messages in real-time
 
-## Pending Decisions / Issues
-- Decide whether onboarding completion should route to `/phone` always (current behavior) or directly to `/home` if already authenticated.
-- Confirm if chat list loading should also be migrated to EasyLoading overlays (currently auth flow is migrated; chat list uses text placeholders).
+---
+
+*Last updated: May 8, 2026 — Session: App Icon + Lottie Animations + Phase 6 Complete*
