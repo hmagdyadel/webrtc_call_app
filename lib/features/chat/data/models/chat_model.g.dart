@@ -11,9 +11,9 @@ _ChatModel _$ChatModelFromJson(Map<String, dynamic> json) => _ChatModel(
   members: (json['members'] as List<dynamic>).map((e) => e as String).toList(),
   lastMessage: json['lastMessage'] as String? ?? '',
   lastMessageSenderId: json['lastMessageSenderId'] as String? ?? '',
-  lastMessageTime: json['last_message_time'] == null
-      ? null
-      : DateTime.parse(json['last_message_time'] as String),
+  lastMessageTime: const TimestampConverter().fromJson(
+    json['last_message_time'],
+  ),
   unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
 );
 
@@ -23,6 +23,8 @@ Map<String, dynamic> _$ChatModelToJson(_ChatModel instance) =>
       'members': instance.members,
       'lastMessage': instance.lastMessage,
       'lastMessageSenderId': instance.lastMessageSenderId,
-      'last_message_time': instance.lastMessageTime?.toIso8601String(),
+      'last_message_time': const TimestampConverter().toJson(
+        instance.lastMessageTime,
+      ),
       'unreadCount': instance.unreadCount,
     };

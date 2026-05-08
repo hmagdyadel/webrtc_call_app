@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'message_model.dart'; // For TimestampConverter
 
 part 'chat_model.freezed.dart';
 part 'chat_model.g.dart';
@@ -10,7 +11,7 @@ abstract class ChatModel with _$ChatModel {
     required List<String> members,
     @Default('') String lastMessage,
     @Default('') String lastMessageSenderId,
-    @JsonKey(name: 'last_message_time') DateTime? lastMessageTime,
+    @TimestampConverter() @JsonKey(name: 'last_message_time') DateTime? lastMessageTime,
     @Default(0) int unreadCount,
   }) = _ChatModel;
 

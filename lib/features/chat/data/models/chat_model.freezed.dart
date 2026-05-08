@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ChatModel {
 
- String get id; List<String> get members; String get lastMessage; String get lastMessageSenderId;@JsonKey(name: 'last_message_time') DateTime? get lastMessageTime; int get unreadCount;
+ String get id; List<String> get members; String get lastMessage; String get lastMessageSenderId;@TimestampConverter()@JsonKey(name: 'last_message_time') DateTime? get lastMessageTime; int get unreadCount;
 /// Create a copy of ChatModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ChatModelCopyWith<$Res>  {
   factory $ChatModelCopyWith(ChatModel value, $Res Function(ChatModel) _then) = _$ChatModelCopyWithImpl;
 @useResult
 $Res call({
- String id, List<String> members, String lastMessage, String lastMessageSenderId,@JsonKey(name: 'last_message_time') DateTime? lastMessageTime, int unreadCount
+ String id, List<String> members, String lastMessage, String lastMessageSenderId,@TimestampConverter()@JsonKey(name: 'last_message_time') DateTime? lastMessageTime, int unreadCount
 });
 
 
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  List<String> members,  String lastMessage,  String lastMessageSenderId, @JsonKey(name: 'last_message_time')  DateTime? lastMessageTime,  int unreadCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  List<String> members,  String lastMessage,  String lastMessageSenderId, @TimestampConverter()@JsonKey(name: 'last_message_time')  DateTime? lastMessageTime,  int unreadCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ChatModel() when $default != null:
 return $default(_that.id,_that.members,_that.lastMessage,_that.lastMessageSenderId,_that.lastMessageTime,_that.unreadCount);case _:
@@ -179,7 +179,7 @@ return $default(_that.id,_that.members,_that.lastMessage,_that.lastMessageSender
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  List<String> members,  String lastMessage,  String lastMessageSenderId, @JsonKey(name: 'last_message_time')  DateTime? lastMessageTime,  int unreadCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  List<String> members,  String lastMessage,  String lastMessageSenderId, @TimestampConverter()@JsonKey(name: 'last_message_time')  DateTime? lastMessageTime,  int unreadCount)  $default,) {final _that = this;
 switch (_that) {
 case _ChatModel():
 return $default(_that.id,_that.members,_that.lastMessage,_that.lastMessageSenderId,_that.lastMessageTime,_that.unreadCount);case _:
@@ -199,7 +199,7 @@ return $default(_that.id,_that.members,_that.lastMessage,_that.lastMessageSender
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  List<String> members,  String lastMessage,  String lastMessageSenderId, @JsonKey(name: 'last_message_time')  DateTime? lastMessageTime,  int unreadCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  List<String> members,  String lastMessage,  String lastMessageSenderId, @TimestampConverter()@JsonKey(name: 'last_message_time')  DateTime? lastMessageTime,  int unreadCount)?  $default,) {final _that = this;
 switch (_that) {
 case _ChatModel() when $default != null:
 return $default(_that.id,_that.members,_that.lastMessage,_that.lastMessageSenderId,_that.lastMessageTime,_that.unreadCount);case _:
@@ -214,7 +214,7 @@ return $default(_that.id,_that.members,_that.lastMessage,_that.lastMessageSender
 @JsonSerializable()
 
 class _ChatModel implements ChatModel {
-  const _ChatModel({required this.id, required final  List<String> members, this.lastMessage = '', this.lastMessageSenderId = '', @JsonKey(name: 'last_message_time') this.lastMessageTime, this.unreadCount = 0}): _members = members;
+  const _ChatModel({required this.id, required final  List<String> members, this.lastMessage = '', this.lastMessageSenderId = '', @TimestampConverter()@JsonKey(name: 'last_message_time') this.lastMessageTime, this.unreadCount = 0}): _members = members;
   factory _ChatModel.fromJson(Map<String, dynamic> json) => _$ChatModelFromJson(json);
 
 @override final  String id;
@@ -227,7 +227,7 @@ class _ChatModel implements ChatModel {
 
 @override@JsonKey() final  String lastMessage;
 @override@JsonKey() final  String lastMessageSenderId;
-@override@JsonKey(name: 'last_message_time') final  DateTime? lastMessageTime;
+@override@TimestampConverter()@JsonKey(name: 'last_message_time') final  DateTime? lastMessageTime;
 @override@JsonKey() final  int unreadCount;
 
 /// Create a copy of ChatModel
@@ -263,7 +263,7 @@ abstract mixin class _$ChatModelCopyWith<$Res> implements $ChatModelCopyWith<$Re
   factory _$ChatModelCopyWith(_ChatModel value, $Res Function(_ChatModel) _then) = __$ChatModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, List<String> members, String lastMessage, String lastMessageSenderId,@JsonKey(name: 'last_message_time') DateTime? lastMessageTime, int unreadCount
+ String id, List<String> members, String lastMessage, String lastMessageSenderId,@TimestampConverter()@JsonKey(name: 'last_message_time') DateTime? lastMessageTime, int unreadCount
 });
 
 
