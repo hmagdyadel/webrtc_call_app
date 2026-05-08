@@ -7,8 +7,8 @@
 | 1–4 | Infrastructure, Firebase, Auth, Home & Chat List | ✅ Complete |
 | 5 | Bug Fixes (icons, OTP loop, mounted, Firestore index) | ✅ Complete |
 | 6 | Navigation & UX Polish | ✅ Complete |
-| 7 | Chat Screen & Real Messaging | 🔲 Next |
-| 8 | QR Code | 🔲 Planned |
+| 7 | Chat Screen & Real Messaging | ✅ Complete |
+| 8 | QR Code | 🔲 Next |
 | 9 | WebRTC Voice Calls | 🔲 Planned |
 | 10 | Video Calls | 🔲 Planned |
 | 11 | Push Notifications (FCM) | 🔲 Planned |
@@ -80,55 +80,31 @@
 
 ---
 
-## What Currently Exists (Code Inventory)
+## Phase 7 — Chat Screen & Real Messaging ✅
 
-### Auth Feature — FULLY WORKING
-- `UserModel` (Freezed) — id, phone, name, avatarUrl, isOnline, createdAt
-- `AuthRemoteSource` — Firebase Phone OTP send + verify
-- `UserRemoteSource` — Firestore user create + read
-- `AuthRepository` — orchestrates both sources
-- `AuthCubit` — 7 states (initial/loading/sendingOtp/otpSent/authenticated/unauthenticated/error)
-- `PhoneScreen` + `OtpScreen` — complete auth flow
+### 7a: Data Models ✅
+- Created `MessageModel` (Freezed) with Firestore `TimestampConverter`
+- Updated `ChatModel` to correctly deserialize Firestore `Timestamp` for `last_message_time`
 
-### Chat Feature — PARTIAL (list only, no messaging)
-- `ChatModel` (Freezed) — id, members, lastMessage, lastMessageSenderId, lastMessageTime, unreadCount
-- `ChatRemoteSource` — getChats stream, createOrGetChat
-- `ChatRepository` — delegates to source
-- `ChatCubit` + `ChatState` — loads chat list via Firestore stream
-- `HomeScreen` — 5-tab NavigationBar with chat list
-- `NewChatScreen` — lists registered users, creates/opens chats
-- ❌ No `MessageModel` yet
-- ❌ No `ChatScreen` yet
-- ❌ No message sending/receiving
+### 7b: Backend Integration ✅
+- Updated `ChatRemoteSource` with real-time `getMessages` stream
+- Implemented `sendMessage` with atomic metadata updates using `WriteBatch`
+- Added `createOrGetChat` for deterministic 1:1 chat initialization
 
-### Router
-- Routes: `/splash`, `/onboarding`, `/auth/phone`, `/auth/otp`, `/home`, `/home/new-chat`
-- ❌ Missing: `/home/chat/:chatId`
+### 7c: Business Logic ✅
+- Implemented `MessageCubit` for message stream management and sending actions
+- Enhanced `ChatCubit` to handle real-time chat list updates with proper subscription lifecycle
 
----
+### 7d: UI/UX ✅
+- Created `ChatScreen` with Sawa-branded AppBar and auto-scrolling message list
+- Developed `MessageBubble` widget with Sawa purple/dark surface theme and status indicators
+- Fixed `_ChatTile` in `HomeScreen` to fetch and display actual user names/phones instead of UIDs
+- Added default person icon for users without names or pictures
 
-## Known Issues / Bugs
-- None currently — `flutter analyze` returns zero issues
-
-## Test Accounts
-| Phone | OTP | Firestore UID |
-|-------|-----|---------------|
-| +20 1125516481 | 123456 | GnNAYAP1W3YV9jwH7CRUtCa0VBv2 |
-
----
-
-## Exact Start Point for Next Session
-1. **Phase 7 — Chat Screen & Real Messaging**
-   - Create `MessageModel` (Freezed)
-   - Add message methods to `ChatRemoteSource` + `ChatRepository`
-   - Create `MessageCubit` + `MessageState`
-   - Build `ChatScreen` UI with Sawa-branded message bubbles
-   - Add `/home/chat/:chatId` route
-   - Wire chat tile tap → navigate to ChatScreen
-   - Run `dart run build_runner build --delete-conflicting-outputs`
-   - Test on Samsung device: two devices exchange messages in real-time
-
----
+### 7e: DI & Routing ✅
+- Registered all new Cubits in `getIt`
+- Added `/home/chat/:chatId` route in `AppRouter`
+- Implemented `pushReplacement` navigation for smoother transitions
 
 ---
 
@@ -150,8 +126,8 @@
 ### Branch History
 | Branch | Phase | Status |
 |--------|-------|--------|
-| `main` | Phases 1–6 | ✅ Merged |
-| `feature/phase-7-chat-messaging` | Phase 7 | 🔧 In Progress |
+| `main` | Phases 1–7 | ✅ Merged |
+| `feature/phase-7-chat-messaging` | Phase 7 | ✅ Complete |
 
 ---
 
@@ -160,36 +136,36 @@
 All must pass before merging to `main`:
 
 ### T7.1 — Code Quality
-- [ ] `flutter analyze` returns zero issues
-- [ ] `dart run build_runner build` succeeds without errors
+- [x] `flutter analyze` returns zero issues
+- [x] `dart run build_runner build` succeeds without errors
 
 ### T7.2 — Navigation
-- [ ] Tapping a chat tile in HomeScreen navigates to ChatScreen
-- [ ] ChatScreen AppBar shows the other user's name (not UID)
-- [ ] Back button returns to HomeScreen
+- [x] Tapping a chat tile in HomeScreen navigates to ChatScreen
+- [x] ChatScreen AppBar shows the other user's name (not UID)
+- [x] Back button returns to HomeScreen
 
 ### T7.3 — Message Sending
-- [ ] Type text in input field → tap send → message appears in chat
-- [ ] Message bubble is purple (`#5B4FD4`), right-aligned (sent)
-- [ ] Input field clears after sending
-- [ ] Chat list's `lastMessage` updates with sent text
+- [x] Type text in input field → tap send → message appears in chat
+- [x] Message bubble is purple (`#5B4FD4`), right-aligned (sent)
+- [x] Input field clears after sending
+- [x] Chat list's `lastMessage` updates with sent text
 
 ### T7.4 — Message Receiving (Real-time)
-- [ ] Send message from Device B → appears instantly on Device A
-- [ ] Received message bubble is dark (`#22223A`), left-aligned
-- [ ] Messages are ordered by timestamp (newest at bottom)
+- [x] Send message from Device B → appears instantly on Device A
+- [x] Received message bubble is dark (`#22223A`), left-aligned
+- [x] Messages are ordered by timestamp (newest at bottom)
 
 ### T7.5 — Message Status
-- [ ] Sent messages show single ✓ (sent status)
-- [ ] Timestamp displayed on each message bubble
+- [x] Sent messages show single ✓ (sent status)
+- [x] Timestamp displayed on each message bubble
 
 ### T7.6 — Empty State
-- [ ] New chat with no messages shows "Start the conversation" placeholder
+- [x] New chat with no messages shows "Start the conversation" placeholder
 
 ### T7.7 — Edge Cases
-- [ ] Sending empty message is prevented (send button disabled)
-- [ ] Long messages wrap properly inside bubbles
-- [ ] Scrolling works with many messages
+- [x] Sending empty message is prevented (send button disabled)
+- [x] Long messages wrap properly inside bubbles
+- [x] Scrolling works with many messages
 
 ---
 
