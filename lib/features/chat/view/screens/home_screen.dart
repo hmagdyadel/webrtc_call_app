@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../auth/data/models/user_model.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/di/injection.dart';
@@ -158,7 +160,7 @@ class _ChatsTab extends StatelessWidget {
   }
 }
 
-class _ChatTile extends StatelessWidget {
+class _ChatTile extends StatefulWidget {
   final ChatModel chat;
   final String currentUserId;
   final String otherId;
@@ -170,36 +172,86 @@ class _ChatTile extends StatelessWidget {
   });
 
   @override
+  State<_ChatTile> createState() => _ChatTileState();
+}
+
+class _ChatTileState extends State<_ChatTile> {
+  String _displayName = '';
+  String _avatarUrl = '';
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.otherId)
+          .get();
+      
+      if (doc.exists && mounted) {
+        final user = UserModel.fromJson({...doc.data()!, 'id': doc.id});
+        setState(() {
+          _displayName = user.name.isNotEmpty ? user.name : user.phone;
+          _avatarUrl = user.avatarUrl;
+          _loading = false;
+        });
+      } else if (mounted) {
+        setState(() {
+          _displayName = widget.otherId.substring(0, 8); // fallback
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _displayName = 'User';
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: AppColors.primary,
-        child: Text(
-          otherId.substring(0, 2).toUpperCase(),
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-        ),
+        backgroundImage: _avatarUrl.isNotEmpty ? NetworkImage(_avatarUrl) : null,
+        child: _avatarUrl.isEmpty
+            ? (_displayName.isNotEmpty && !RegExp(r'^[0-9+]+$').hasMatch(_displayName)
+                ? Text(
+                    _displayName[0].toUpperCase(),
+                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                  )
+                : const Icon(Icons.person, color: Colors.white, size: 24))
+            : null,
       ),
       title: Text(
-        otherId,
-        style: const TextStyle(color: Colors.white, fontSize: 15),
+        _loading ? '...' : _displayName,
+        style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        chat.lastMessage.isEmpty ? 'No messages yet' : chat.lastMessage,
+        widget.chat.lastMessage.isEmpty ? 'No messages yet' : widget.chat.lastMessage,
         style: const TextStyle(color: Colors.grey, fontSize: 13),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: chat.lastMessageTime != null
+      trailing: widget.chat.lastMessageTime != null
           ? Text(
-        _formatTime(chat.lastMessageTime!),
+        _formatTime(widget.chat.lastMessageTime!),
         style: const TextStyle(color: Colors.grey, fontSize: 12),
       )
           : null,
       onTap: () => context.push(
-        '/home/chat/${chat.id}',
-        extra: {'otherUserId': otherId},
+        '/home/chat/${widget.chat.id}',
+        extra: {'otherUserId': widget.otherId},
       ),
     );
   }

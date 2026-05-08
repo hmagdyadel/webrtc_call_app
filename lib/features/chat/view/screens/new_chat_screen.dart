@@ -76,13 +76,16 @@ class _NewChatScreenState extends State<NewChatScreen> {
           return ListTile(
             leading: CircleAvatar(
               backgroundColor: AppColors.primary,
-              child: Text(
-                user.name.isNotEmpty
-                    ? user.name[0].toUpperCase()
-                    : user.phone.substring(user.phone.length - 2),
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-              ),
+              backgroundImage: user.avatarUrl.isNotEmpty ? NetworkImage(user.avatarUrl) : null,
+              child: user.avatarUrl.isEmpty
+                  ? (user.name.isNotEmpty
+                      ? Text(
+                          user.name[0].toUpperCase(),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                        )
+                      : const Icon(Icons.person, color: Colors.white, size: 24))
+                  : null,
             ),
             title: Text(
               user.name.isEmpty ? user.phone : user.name,

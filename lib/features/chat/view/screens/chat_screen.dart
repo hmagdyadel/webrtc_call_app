@@ -113,10 +113,12 @@ class _ChatScreenState extends State<ChatScreen> {
             backgroundImage:
                 _otherUserAvatar.isNotEmpty ? NetworkImage(_otherUserAvatar) : null,
             child: _otherUserAvatar.isEmpty
-                ? Text(
-                    _otherUserName.isNotEmpty ? _otherUserName[0].toUpperCase() : '?',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                  )
+                ? (_otherUserName.isNotEmpty && !RegExp(r'^[0-9+]+$').hasMatch(_otherUserName)
+                    ? Text(
+                        _otherUserName[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      )
+                    : const Icon(Icons.person, color: Colors.white, size: 20))
                 : null,
           ),
           const SizedBox(width: 10),

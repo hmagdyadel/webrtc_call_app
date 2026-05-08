@@ -62,7 +62,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i697.ChatRepository>(
       () => _i697.ChatRepositoryImpl(gh<_i112.ChatRemoteSource>()),
     );
-    gh.factory<_i804.AuthCubit>(
+    gh.lazySingleton<_i804.AuthCubit>(
       () => _i804.AuthCubit(gh<_i880.AuthRepository>()),
     );
     gh.factory<_i283.ChatCubit>(

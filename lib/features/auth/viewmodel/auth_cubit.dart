@@ -3,7 +3,7 @@ import 'package:injectable/injectable.dart';
 import '../data/repositories/auth_repository.dart';
 import 'auth_state.dart';
 
-@injectable
+@lazySingleton
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _repository;
   String? _verificationId;
