@@ -19,11 +19,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-  int _currentIndex = 1; // Chats tab default
+  int _currentIndex = 0; // Chats tab default
 
   late final List<Widget> _screens = [
-    const _CallsTab(),
     _ChatsTab(userId: widget.userId),
+    const _CallsTab(),
     const _ExploreTab(),
     const _ContactsTab(),
     const _MeTab(),
@@ -51,14 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
           type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.phone_outlined),
-              activeIcon: Icon(Icons.phone),
-              label: 'Calls',
-            ),
-            BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble_outline),
               activeIcon: Icon(Icons.chat_bubble),
               label: 'Chats',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.phone_outlined),
+              activeIcon: Icon(Icons.phone),
+              label: 'Calls',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.explore_outlined),

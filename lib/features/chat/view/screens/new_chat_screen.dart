@@ -110,7 +110,9 @@ class _NewChatScreenState extends State<NewChatScreen> {
     await chatSource.createOrGetChat(currentUserId!, otherUser.id);
 
     if (!context.mounted) return;
-    // Navigate to ChatScreen directly instead of just popping
+    // Pop NewChatScreen, then push ChatScreen
+    // This makes the back stack: Home → Chat (not Home → NewChat → Chat)
+    context.pop();
     context.push(
       '/home/chat/$chatId',
       extra: {'otherUserId': otherUser.id},
