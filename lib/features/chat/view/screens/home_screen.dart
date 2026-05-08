@@ -184,7 +184,10 @@ class _ChatTile extends StatelessWidget {
         style: const TextStyle(color: Colors.grey, fontSize: 12),
       )
           : null,
-      onTap: () {},
+      onTap: () => context.push(
+        '/home/chat/${chat.id}',
+        extra: {'otherUserId': otherId},
+      ),
     );
   }
 

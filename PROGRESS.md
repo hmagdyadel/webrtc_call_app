@@ -130,4 +130,67 @@
 
 ---
 
-*Last updated: May 8, 2026 — Session: App Icon + Lottie Animations + Phase 6 Complete*
+---
+
+## 🔀 Git Branching Workflow (MANDATORY)
+
+> **Every phase gets its own branch. Merge to main only after all test cases pass.**
+
+### Rules
+1. Before starting a phase: `git checkout -b feature/phase-{N}-{description}`
+2. Commit frequently with descriptive messages during development
+3. After all test cases pass: commit final state, then merge:
+   ```bash
+   git checkout main
+   git merge feature/phase-{N}-{description}
+   git push origin main
+   ```
+4. Never push broken code to `main`
+
+### Branch History
+| Branch | Phase | Status |
+|--------|-------|--------|
+| `main` | Phases 1–6 | ✅ Merged |
+| `feature/phase-7-chat-messaging` | Phase 7 | 🔧 In Progress |
+
+---
+
+## ✅ Phase 7 — Test Cases (Chat Screen & Real Messaging)
+
+All must pass before merging to `main`:
+
+### T7.1 — Code Quality
+- [ ] `flutter analyze` returns zero issues
+- [ ] `dart run build_runner build` succeeds without errors
+
+### T7.2 — Navigation
+- [ ] Tapping a chat tile in HomeScreen navigates to ChatScreen
+- [ ] ChatScreen AppBar shows the other user's name (not UID)
+- [ ] Back button returns to HomeScreen
+
+### T7.3 — Message Sending
+- [ ] Type text in input field → tap send → message appears in chat
+- [ ] Message bubble is purple (`#5B4FD4`), right-aligned (sent)
+- [ ] Input field clears after sending
+- [ ] Chat list's `lastMessage` updates with sent text
+
+### T7.4 — Message Receiving (Real-time)
+- [ ] Send message from Device B → appears instantly on Device A
+- [ ] Received message bubble is dark (`#22223A`), left-aligned
+- [ ] Messages are ordered by timestamp (newest at bottom)
+
+### T7.5 — Message Status
+- [ ] Sent messages show single ✓ (sent status)
+- [ ] Timestamp displayed on each message bubble
+
+### T7.6 — Empty State
+- [ ] New chat with no messages shows "Start the conversation" placeholder
+
+### T7.7 — Edge Cases
+- [ ] Sending empty message is prevented (send button disabled)
+- [ ] Long messages wrap properly inside bubbles
+- [ ] Scrolling works with many messages
+
+---
+
+*Last updated: May 8, 2026 — Branch: feature/phase-7-chat-messaging*

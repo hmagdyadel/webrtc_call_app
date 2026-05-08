@@ -7,6 +7,7 @@ import '../../features/auth/view/screens/otp_screen.dart';
 import '../../features/auth/view/screens/phone_screen.dart';
 import '../../features/auth/viewmodel/auth_cubit.dart';
 import '../../features/auth/viewmodel/auth_state.dart';
+import '../../features/chat/view/screens/chat_screen.dart';
 import '../../features/chat/view/screens/home_screen.dart';
 import '../../features/chat/view/screens/new_chat_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
@@ -20,6 +21,7 @@ class AppRoutePaths {
   static const otp = '/auth/otp';
   static const home = '/home';
   static const newChat = '/home/new-chat';
+  static const chatDetail = '/home/chat/:chatId';
 }
 
 GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
@@ -82,6 +84,21 @@ GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
       GoRoute(
         path: AppRoutePaths.newChat,
         builder: (context, state) => const NewChatScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.chatDetail,
+        builder: (context, state) {
+          final chatId = state.pathParameters['chatId'] ?? '';
+          final extra = state.extra as Map<String, String>? ?? {};
+          final authState = getIt<AuthCubit>().state;
+          final currentUserId = authState.whenOrNull(authenticated: (user) => user.id) ?? '';
+          final otherUserId = extra['otherUserId'] ?? '';
+          return ChatScreen(
+            chatId: chatId,
+            currentUserId: currentUserId,
+            otherUserId: otherUserId,
+          );
+        },
       ),
     ],
   );

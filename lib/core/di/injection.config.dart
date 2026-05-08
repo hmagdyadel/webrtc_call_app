@@ -24,6 +24,7 @@ import 'package:sawa/features/chat/data/repositories/chat_repository.dart'
 import 'package:sawa/features/chat/data/sources/chat_remote_source.dart'
     as _i112;
 import 'package:sawa/features/chat/viewmodel/chat_cubit.dart' as _i283;
+import 'package:sawa/features/chat/viewmodel/message_cubit.dart' as _i161;
 import 'package:sawa/features/contacts/data/repositories/contacts_repository.dart'
     as _i765;
 import 'package:sawa/features/contacts/data/sources/contacts_remote_source.dart'
@@ -66,6 +67,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i283.ChatCubit>(
       () => _i283.ChatCubit(gh<_i697.ChatRepository>()),
+    );
+    gh.factory<_i161.MessageCubit>(
+      () => _i161.MessageCubit(gh<_i697.ChatRepository>()),
     );
     return this;
   }
