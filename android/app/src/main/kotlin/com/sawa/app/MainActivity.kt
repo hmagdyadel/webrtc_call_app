@@ -1,4 +1,4 @@
-package com.hmagdy.webrtc_call_app
+package com.sawa.app
 
 import io.flutter.embedding.android.FlutterActivity
 

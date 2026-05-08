@@ -1,4 +1,4 @@
-name: webrtc_call_app
+name: sawa
 description: "Botim-like chat and calling app"
 publish_to: 'none'
 version: 1.0.0+1
@@ -28,6 +28,7 @@ dependencies:
   firebase_auth: ^6.4.0
   firebase_messaging: ^16.2.0
   cloud_firestore: ^6.3.0
+  firebase_storage: ^13.3.0
 
   # State management
   flutter_bloc: ^9.1.1
@@ -48,6 +49,11 @@ dependencies:
   flutter_easyloading: ^3.0.5
   lottie: ^3.1.2
   smooth_page_indicator: ^1.2.0
+  google_fonts: ^6.2.1
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.3
+  cached_network_image: ^3.4.1
+  image_picker: ^1.1.2
 
   # Utils
   permission_handler: ^12.0.1
@@ -64,12 +70,21 @@ dev_dependencies:
   json_serializable: ^6.13.1
   retrofit_generator: ^10.2.5
   injectable_generator: ^3.0.2
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  min_sdk_android: 23
+  adaptive_icon_background: "#5B4FD4"
+  adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"
+  remove_alpha_ios: true
 
 
 flutter:
   uses-material-design: true
   assets:
-    - assets/animations/splash.json
-    - assets/animations/onboarding_chat.json
-    - assets/animations/onboarding_call.json
-    - assets/animations/onboarding_security.json
+    - assets/animations/
+    - assets/icons/
+    - assets/images/

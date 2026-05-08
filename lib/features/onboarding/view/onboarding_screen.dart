@@ -15,23 +15,26 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
-  int _currentPage = 0;
+  int _page = 0;
 
   static const _pages = <_OnboardingPageData>[
     _OnboardingPageData(
-      animationPath: 'assets/animations/onboarding_chat.json',
-      title: 'Real-time Chat',
-      description: 'Send and receive messages instantly with your contacts.',
+      lottie: 'assets/animations/onboarding_chat.json',
+      titleAr: 'تواصل مع اللي تحبهم',
+      titleEn: 'Chat with those you love',
+      subtitle: 'رسائل فورية، صور، وملفات\nكل شيء في مكان واحد',
     ),
     _OnboardingPageData(
-      animationPath: 'assets/animations/onboarding_call.json',
-      title: 'Crystal Clear Calls',
-      description: 'Make smooth voice and video calls powered by WebRTC.',
+      lottie: 'assets/animations/onboarding_voice.json',
+      titleAr: 'مكالمات زي ما تكون جنب بعض',
+      titleEn: 'Calls that feel face-to-face',
+      subtitle: 'جودة صوت عالية بتقنية WebRTC\nمن غير انقطاع',
     ),
     _OnboardingPageData(
-      animationPath: 'assets/animations/onboarding_security.json',
-      title: 'Private and Secure',
-      description: 'Your conversations are protected with secure authentication.',
+      lottie: 'assets/animations/onboarding_video.json',
+      titleAr: 'شوف وجه بعض في أي وقت',
+      titleEn: 'See each other, anytime',
+      subtitle: 'مكالمات فيديو مشفرة تماماً\nخصوصيتك مضمونة',
     ),
   ];
 
@@ -49,64 +52,78 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isLastPage = _currentPage == _pages.length - 1;
-
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: const Color(0xFF0D0D1E),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _completeOnboarding,
-                  child: const Text('Skip'),
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.topRight,
+              child: TextButton(
+                onPressed: _completeOnboarding,
+                child: const Text(
+                  'تخطى',
+                  style: TextStyle(color: Color(0xFF6B6490), fontSize: 14),
                 ),
               ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _controller,
-                  itemCount: _pages.length,
-                  onPageChanged: (index) => setState(() => _currentPage = index),
-                  itemBuilder: (_, index) => _OnboardingPage(data: _pages[index]),
-                ),
-              ),
-              SmoothPageIndicator(
+            ),
+            Expanded(
+              child: PageView.builder(
                 controller: _controller,
-                count: _pages.length,
-                effect: WormEffect(
-                  dotColor: Colors.grey.shade700,
-                  activeDotColor: const Color(0xFF2196F3),
-                  dotHeight: 10,
-                  dotWidth: 10,
-                ),
+                itemCount: _pages.length,
+                onPageChanged: (index) => setState(() => _page = index),
+                itemBuilder: (_, index) => _OnboardingPage(data: _pages[index]),
               ),
-              const SizedBox(height: 24),
-              SizedBox(
+            ),
+            SmoothPageIndicator(
+              controller: _controller,
+              count: _pages.length,
+              effect: const ExpandingDotsEffect(
+                activeDotColor: Color(0xFF5B4FD4),
+                dotColor: Color(0xFF2A2A4A),
+                dotHeight: 8,
+                dotWidth: 8,
+                expansionFactor: 3.5,
+                spacing: 6,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: SizedBox(
                 width: double.infinity,
-                height: 52,
+                height: 54,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (isLastPage) {
-                      await _completeOnboarding();
-                    } else {
-                      await _controller.nextPage(
-                        duration: const Duration(milliseconds: 250),
+                  onPressed: () {
+                    if (_page < _pages.length - 1) {
+                      _controller.nextPage(
+                        duration: const Duration(milliseconds: 350),
                         curve: Curves.easeInOut,
                       );
+                    } else {
+                      _completeOnboarding();
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
+                    backgroundColor: const Color(0xFF5B4FD4),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
                   ),
-                  child: Text(isLastPage ? 'Get Started' : 'Next'),
+                  child: Text(
+                    _page < _pages.length - 1 ? 'التالي' : 'ابدأ الآن',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
@@ -120,51 +137,61 @@ class _OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 220,
-          height: 220,
-          decoration: BoxDecoration(
-            color: const Color(0xFF16213E),
-            borderRadius: BorderRadius.circular(24),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Lottie.asset(data.lottie, width: 260, height: 260, repeat: true),
+          const SizedBox(height: 36),
+          Text(
+            data.titleAr,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              height: 1.3,
+            ),
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
           ),
-          child: Lottie.asset(
-            data.animationPath,
-            repeat: true,
-            fit: BoxFit.contain,
+          const SizedBox(height: 6),
+          Text(
+            data.titleEn,
+            style: const TextStyle(
+              color: Color(0xFF00C8A0),
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        const SizedBox(height: 28),
-        Text(
-          data.title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+          const SizedBox(height: 18),
+          Text(
+            data.subtitle,
+            style: const TextStyle(
+              color: Color(0xFFB0AADD),
+              fontSize: 15,
+              height: 1.7,
+            ),
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.rtl,
           ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          data.description,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey, fontSize: 15, height: 1.4),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 class _OnboardingPageData {
   const _OnboardingPageData({
-    required this.animationPath,
-    required this.title,
-    required this.description,
+    required this.lottie,
+    required this.titleAr,
+    required this.titleEn,
+    required this.subtitle,
   });
 
-  final String animationPath;
-  final String title;
-  final String description;
+  final String lottie;
+  final String titleAr;
+  final String titleEn;
+  final String subtitle;
 }

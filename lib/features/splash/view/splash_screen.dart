@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import '../../../app/router/app_router.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/utils/onboarding_store.dart';
@@ -15,13 +16,16 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   Timer? _timer;
+  late final AnimationController _lottieController;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(seconds: 2), _routeNext);
+    _lottieController = AnimationController(vsync: this);
+    _timer = Timer(const Duration(milliseconds: 2400), _routeNext);
   }
 
   void _routeNext() {
@@ -40,73 +44,63 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _lottieController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: const Color(0xFF0D0D1E),
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            _SplashLogo(),
-            SizedBox(height: 20),
-            Text(
-              'Botim Clone',
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            Lottie.asset(
+              'assets/animations/splash.json',
+              controller: _lottieController,
+              width: 180,
+              height: 180,
+              onLoaded: (composition) {
+                _lottieController
+                  ..duration = composition.duration
+                  ..forward();
+              },
+            ),
+            const SizedBox(height: 28),
+            const Text(
+              'سوا',
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.3,
+                color: Color(0xFF5B4FD4),
+                fontSize: 38,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2,
               ),
             ),
-            SizedBox(height: 8),
-            Text(
-              'Chat & Calls',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+            const SizedBox(height: 6),
+            const Text(
+              'SAWA',
+              style: TextStyle(
+                color: Color(0xFF00C8A0),
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 8,
+              ),
+            ),
+            const Spacer(),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 48),
+              child: Text(
+                'سوا دايماً متواصلين',
+                style: TextStyle(
+                  color: Color(0xFF6B6490),
+                  fontSize: 13,
+                ),
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SplashLogo extends StatelessWidget {
-  const _SplashLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        color: const Color(0xFF16213E),
-        borderRadius: BorderRadius.circular(60),
-        border: Border.all(color: const Color(0xFF2196F3), width: 1.5),
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: const [
-          Positioned(
-            top: 30,
-            child: Icon(
-              Icons.chat_bubble_rounded,
-              color: Color(0xFF2196F3),
-              size: 34,
-            ),
-          ),
-          Positioned(
-            bottom: 26,
-            child: Icon(
-              Icons.call_rounded,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-        ],
       ),
     );
   }

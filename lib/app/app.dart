@@ -5,6 +5,7 @@ import '../core/di/injection.dart';
 import '../core/utils/onboarding_store.dart';
 import '../features/auth/viewmodel/auth_cubit.dart';
 import 'router/app_router.dart';
+import 'theme/app_theme.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -20,13 +21,9 @@ class App extends StatelessWidget {
           final router = createAppRouter(authCubit, onboardingStore);
 
           return MaterialApp.router(
-            title: 'Call App',
+            title: 'Sawa',
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              useMaterial3: true,
-              brightness: Brightness.dark,
-              fontFamily: 'Roboto',
-            ),
+            theme: sawaTheme(),
             builder: EasyLoading.init(),
             routerConfig: router,
           );

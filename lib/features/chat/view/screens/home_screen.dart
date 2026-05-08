@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../app/theme/app_colors.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/di/injection.dart';
@@ -31,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.bgDark,
       body: _screens[_currentIndex],
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
@@ -41,9 +42,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
-          backgroundColor: const Color(0xFF222222),
-          selectedItemColor: const Color(0xFF2196F3),
-          unselectedItemColor: const Color(0xFF888888),
+          backgroundColor: AppColors.navBackground,
+          selectedItemColor: AppColors.navSelected,
+          unselectedItemColor: AppColors.navUnselected,
 
           selectedFontSize: 11,
           unselectedFontSize: 11,
@@ -90,9 +91,9 @@ class _ChatsTab extends StatelessWidget {
     return BlocProvider(
       create: (_) => getIt<ChatCubit>()..loadChats(userId),
       child: Scaffold(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.bgDark,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: AppColors.bgDark,
           elevation: 0,
           title: const Text('Chats',
               style: TextStyle(
@@ -159,7 +160,7 @@ class _ChatTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: AppColors.primary,
         child: Text(
           otherId.substring(0, 2).toUpperCase(),
           style: const TextStyle(color: Colors.white, fontSize: 14),
@@ -204,9 +205,9 @@ class _CallsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.bgDark,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.bgDark,
         elevation: 0,
         title: const Text(
           'Calls',
@@ -228,7 +229,7 @@ class _ExploreTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFF1A1A1A),
+      backgroundColor: AppColors.bgDark,
       body: Center(
         child: Text('Explore', style: TextStyle(color: Colors.grey)),
       ),
@@ -243,7 +244,7 @@ class _ContactsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: Color(0xFF1A1A1A),
+      backgroundColor: AppColors.bgDark,
       body: Center(
         child: Text('Contacts', style: TextStyle(color: Colors.grey)),
       ),
@@ -258,9 +259,9 @@ class _MeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.bgDark,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A1A),
+        backgroundColor: AppColors.bgDark,
         elevation: 0,
         title: const Text('Me',
             style: TextStyle(color: Colors.white, fontSize: 20,
@@ -270,7 +271,7 @@ class _MeTab extends StatelessWidget {
         children: [
           ListTile(
             leading: const CircleAvatar(
-              backgroundColor: Color(0xFF2196F3),
+              backgroundColor: AppColors.primary,
               child: Icon(Icons.person, color: Colors.white),
             ),
             title: const Text('My Profile',

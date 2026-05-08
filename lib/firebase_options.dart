@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBW9hhLt7KYfn_FMZe-RVbhXtUmHrK3wVg',
-    appId: '1:946149045359:android:b64b407ebb770bda6ec99a',
+    appId: '1:946149045359:android:232763982b731bb06ec99a',
     messagingSenderId: '946149045359',
     projectId: 'webrtc-call-app-5a0db',
     storageBucket: 'webrtc-call-app-5a0db.firebasestorage.app',
@@ -59,10 +59,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAlYrM4-qG2_k2NYe3-u9qpCOd-oQHeIek',
-    appId: '1:946149045359:ios:182fa2fb43c10d116ec99a',
+    appId: '1:946149045359:ios:6e5db71f68eef07e6ec99a',
     messagingSenderId: '946149045359',
     projectId: 'webrtc-call-app-5a0db',
     storageBucket: 'webrtc-call-app-5a0db.firebasestorage.app',
-    iosBundleId: 'com.hmagdy.webrtcCallApp',
+    iosBundleId: 'com.sawa.app',
   );
+
 }
