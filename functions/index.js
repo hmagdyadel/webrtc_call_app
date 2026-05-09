@@ -46,26 +46,25 @@ exports.sendChatNotification = functions.firestore
     // Construct the notification payload
     const payload = {
       token: fcmToken,
-      notification: {
-        title: senderName,
-        body: text,
-      },
       data: {
         click_action: "FLUTTER_NOTIFICATION_CLICK",
         chatId: chatId,
         senderId: senderId,
         messageId: context.params.messageId,
+        title: senderName,
+        body: text,
       },
       android: {
         priority: "high",
-        notification: {
-          channelId: "chat_messages", // This matches the channel in our Flutter code
-        }
       },
       apns: {
         payload: {
           aps: {
             sound: "default",
+            alert: {
+              title: senderName,
+              body: text,
+            }
           }
         }
       }

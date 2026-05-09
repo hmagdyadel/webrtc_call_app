@@ -14,7 +14,39 @@ import 'package:flutter/foundation.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("Handling a background message: ${message.messageId}");
-  _markMessageAsDelivered(message.data);
+  await _markMessageAsDelivered(message.data);
+
+  // Manually show notification for Android data-only messages
+  final title = message.notification?.title ?? message.data['title'] ?? 'New Message';
+  final body = message.notification?.body ?? message.data['body'] ?? '';
+
+  final androidDetails = AndroidNotificationDetails(
+    'chat_messages',
+    'Chat Messages',
+    channelDescription: 'Notifications for incoming chat messages',
+    importance: Importance.max,
+    priority: Priority.high,
+    styleInformation: BigTextStyleInformation(body),
+    actions: <AndroidNotificationAction>[
+      const AndroidNotificationAction(
+        'reply',
+        'Reply',
+        inputs: <AndroidNotificationActionInput>[
+          AndroidNotificationActionInput(label: 'Reply...'),
+        ],
+      ),
+      const AndroidNotificationAction('mark_read', 'Mark as Read'),
+    ],
+  );
+
+  final details = NotificationDetails(android: androidDetails);
+  await FlutterLocalNotificationsPlugin().show(
+    id: message.hashCode,
+    title: title,
+    body: body,
+    notificationDetails: details,
+    payload: jsonEncode(message.data),
+  );
 }
 
 @pragma('vm:entry-point')
@@ -51,7 +83,7 @@ void _onDidReceiveBackgroundNotificationResponse(NotificationResponse response) 
       await batch.commit();
       
       if (response.id != null) {
-        FlutterLocalNotificationsPlugin().cancel(response.id!);
+        FlutterLocalNotificationsPlugin().cancel(id: response.id!);
       }
     }
   } else if (response.actionId == 'reply') {
@@ -83,7 +115,7 @@ void _onDidReceiveBackgroundNotificationResponse(NotificationResponse response) 
       await batch.commit();
       
       if (response.id != null) {
-        FlutterLocalNotificationsPlugin().cancel(response.id!);
+        FlutterLocalNotificationsPlugin().cancel(id: response.id!);
       }
     }
   }
@@ -187,21 +219,20 @@ class PushNotificationService {
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('Got a message whilst in the foreground!');
     _markMessageAsDelivered(message.data);
-    if (message.notification != null) {
-      _showLocalNotification(message);
-    }
+    _showLocalNotification(message);
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
+    final title = message.notification?.title ?? message.data['title'] ?? 'New Message';
+    final body = message.notification?.body ?? message.data['body'] ?? '';
+    
     final androidDetails = AndroidNotificationDetails(
       'chat_messages',
       'Chat Messages',
       channelDescription: 'Notifications for incoming chat messages',
       importance: Importance.max,
       priority: Priority.high,
-      styleInformation: BigTextStyleInformation(
-        message.notification?.body ?? '',
-      ),
+      styleInformation: BigTextStyleInformation(body),
       actions: <AndroidNotificationAction>[
         const AndroidNotificationAction(
           'reply',
@@ -221,12 +252,12 @@ class PushNotificationService {
       presentBadge: true,
       presentSound: true,
     );
-    const details = NotificationDetails(android: androidDetails, iOS: darwinDetails);
+    final details = NotificationDetails(android: androidDetails, iOS: darwinDetails);
 
     await _localNotifications.show(
       id: message.hashCode,
-      title: message.notification?.title ?? 'New Message',
-      body: message.notification?.body,
+      title: title,
+      body: body,
       notificationDetails: details,
       payload: jsonEncode(message.data),
     );
