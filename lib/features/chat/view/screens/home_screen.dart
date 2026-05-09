@@ -216,7 +216,7 @@ class _ChatTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
       subtitle: Text(
-        chat.lastMessage.isEmpty ? 'No messages yet' : chat.lastMessage,
+        _buildChatPreview(chat),
         style: const TextStyle(color: Colors.grey, fontSize: 13),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -261,6 +261,14 @@ class _ChatTile extends StatelessWidget {
     if (diff.inHours > 0) return '${diff.inHours}h';
     if (diff.inMinutes > 0) return '${diff.inMinutes}m';
     return 'now';
+  }
+
+  String _buildChatPreview(ChatModel chat) {
+    if (chat.lastMessage.isNotEmpty) return chat.lastMessage;
+    // Backward compatibility for older docs where audio/media preview text
+    // was not populated in chat metadata.
+    if (chat.lastMessageSenderId.isNotEmpty) return '🎤 Voice message';
+    return 'No messages yet';
   }
 }
 

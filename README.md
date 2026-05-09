@@ -160,7 +160,7 @@ flutter run
 - [ ] **Phase 12** — Native Call UI (CallKit / ConnectionService)
 - [x] **Phase 13** — Profile & Settings
 - [x] **Phase 14** — Last Seen & Status Toggle
-- [x] **Phase 17** — Multimedia Chat (Images, Video, Audio, Location, Contacts)
+- [x] **Phase 17** — Multimedia Chat (Audio 2.0, Location 2.0, Native Contacts)
 - [ ] **Phase 15** — Contacts Sync
 - [ ] **Phase 16** — Production Hardening
 

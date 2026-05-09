@@ -305,34 +305,39 @@ class MessageBubble extends StatelessWidget {
             final lat = message.metadata?['latitude'];
             final lng = message.metadata?['longitude'];
             if (lat != null && lng != null) {
-              final url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+              final url = Uri.parse('geo:$lat,$lng?q=$lat,$lng');
               if (await canLaunchUrl(url)) {
-                await launchUrl(url);
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+              } else {
+                final fallback = Uri.parse('https://maps.google.com/?q=$lat,$lng');
+                if (await canLaunchUrl(fallback)) {
+                    await launchUrl(fallback, mode: LaunchMode.externalApplication);
+                }
               }
             }
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: 'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=${message.metadata?['longitude']},${message.metadata?['latitude']}&z=15&l=map&size=450,250&pt=${message.metadata?['longitude']},${message.metadata?['latitude']},pm2rdm',
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    height: 150,
-                    color: Colors.grey.withValues(alpha: 0.2),
-                    child: const Center(child: CircularProgressIndicator()),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    height: 150,
-                    color: Colors.grey.withValues(alpha: 0.2),
-                    child: const Center(
-                      child: Icon(Icons.location_on, size: 48, color: Colors.redAccent),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isSent ? Colors.white.withValues(alpha: 0.12) : AppColors.bgDark,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.my_location, size: 22, color: AppColors.accent),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${message.metadata?['latitude']?.toStringAsFixed(5) ?? '--'}, '
+                        '${message.metadata?['longitude']?.toStringAsFixed(5) ?? '--'}',
+                        style: TextStyle(color: textColor, fontSize: 13),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
               const SizedBox(height: 8),
@@ -354,6 +359,8 @@ class MessageBubble extends StatelessWidget {
           url: message.mediaUrl ?? '',
           isSent: isSent,
           localPath: localPath,
+          isUploading: isUploading,
+          uploadProgress: uploadProgress,
         );
       case 'contact':
         final contactName = message.metadata?['name'] ?? 'Contact';

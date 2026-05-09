@@ -16,8 +16,9 @@
 | 13 | Profile & Settings | ✅ Complete |
 | 14 | Last Seen & Status Toggle | ✅ Complete |
 | 15 | Contacts Sync | 🔲 Planned |
+| 15 | Contacts Sync | 🔲 Planned |
 | 16 | Production Hardening | 🔲 Planned |
-| 17 | Multimedia Chat (Audio, Location, Contacts, Progress) | ✅ Complete |
+| 17 | Multimedia Chat (Audio 2.0, Location 2.0, Native Contacts) | ✅ Complete |
 
 ---
 
@@ -180,15 +181,31 @@ All must pass before merging to `main`:
 - Implemented `uploadMedia` in `ChatRepository` using Firebase Storage
 - Enhanced `MessageCubit` with `sendMediaMessage` and `sendLocationMessage`
 
-### 17b: Audio & Location Sharing ✅
-- **Audio Messaging**: Integrated `record` and `audioplayers` for WhatsApp-style voice notes
-- **Dynamic Input Bar**: Mic/Send button toggle based on text input
-- **Location Sharing**: Added static map preview using Yandex/OpenStreetMap API
+### 17b: Audio & Location Sharing 2.0 ✅
+- **Audio 2.0**: Added waveform animations (recording & playback), playback speed toggle (1x-2x), and seeking.
+- **Dynamic Input Bar**: Mic/Send button toggle with real-time waveform during record.
+- **Location 2.0**: Coordinate-based card UI with `geo:` deep linking for native map apps.
 
 ### 17c: Contacts & Files ✅
-- **Contact Sharing**: Native contact picker and interactive contact bubbles
-- **File Messaging**: Improved document picking with `file_picker`
-- **Upload Flow**: Real-time progress indicators for all media types
+- **Native Contacts**: Full implementation of native contact picker with permission guarding.
+- **File Messaging**: Improved document picking and preview logic.
+- **UX Polish**: Added "🎤 Voice message" previews to the main chat list.
+- **Upload Flow**: Integrated percentage-based progress tracking for audio and images.
+
+---
+
+## Latest Session Updates (May 2026)
+
+- Upgraded audio message UI to WhatsApp-style behavior:
+  - waveform bars UI with progress highlight
+  - tap on waveform to seek
+  - playback speed toggle: `1x` → `1.25x` → `1.5x` → `2x`
+  - upload state integrated into audio bubble (progress percent while sending)
+- Audio local file playback remains available before upload completes.
+- Location bubble no longer relies on static map APIs or keys:
+  - shows current latitude/longitude only
+  - opens coordinates via `geo:` deep link (with browser fallback)
+- Ran `dart analyze`: zero issues.
 
 ---
 

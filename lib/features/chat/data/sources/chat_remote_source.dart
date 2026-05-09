@@ -101,6 +101,7 @@ class ChatRemoteSourceImpl implements ChatRemoteSource {
     if (message.type == 'image') lastMessageText = '📷 Image';
     if (message.type == 'video') lastMessageText = '🎥 Video';
     if (message.type == 'file') lastMessageText = '📄 Document';
+    if (message.type == 'audio') lastMessageText = '🎤 Voice message';
     if (message.type == 'location') lastMessageText = '📍 Location';
     if (message.type == 'sticker') lastMessageText = '✨ Sticker';
 

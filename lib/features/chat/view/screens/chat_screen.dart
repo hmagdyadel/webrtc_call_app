@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -52,6 +54,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final AudioRecorder _audioRecorder = AudioRecorder();
   Timer? _recordingTimer;
   int _recordingDuration = 0;
+  final _random = math.Random();
+  List<double> _recordingWaves = List<double>.filled(26, 0.2);
 
   @override
   void initState() {
@@ -278,15 +282,45 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        await _showLocationDialog(
+          title: 'Enable Location',
+          message: 'Location services are off. Please enable location to share your current position.',
+          primaryLabel: 'Open Location Settings',
+          onPrimaryTap: () async {
+            await Geolocator.openLocationSettings();
+          },
+        );
+        return;
+      }
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return;
+        if (permission == LocationPermission.denied) {
+          await _showLocationDialog(
+            title: 'Location Permission Needed',
+            message: 'Please allow location permission to send your current location.',
+            primaryLabel: 'Retry',
+            onPrimaryTap: () async {
+              await Geolocator.requestPermission();
+            },
+          );
+          return;
+        }
       }
       
-      if (permission == LocationPermission.deniedForever) return;
+      if (permission == LocationPermission.deniedForever) {
+        await _showLocationDialog(
+          title: 'Permission Blocked',
+          message: 'Location permission is permanently denied. Enable it from app settings.',
+          primaryLabel: 'Open App Settings',
+          onPrimaryTap: () async {
+            await Geolocator.openAppSettings();
+          },
+        );
+        return;
+      }
 
       Position position = await Geolocator.getCurrentPosition();
       
@@ -295,20 +329,144 @@ class _ChatScreenState extends State<ChatScreen> {
         senderId: widget.currentUserId,
         latitude: position.latitude,
         longitude: position.longitude,
-        address: 'Current Location',
+        address:
+            'Current Location (${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)})',
       );
     } catch (e) {
       debugPrint('Error fetching location: $e');
+      await _showLocationDialog(
+        title: 'Location Error',
+        message: 'Failed to get current location. Please try again.',
+        primaryLabel: 'OK',
+        onPrimaryTap: () async {},
+      );
     }
   }
 
-  Future<void> _pickContact() async {
+  Future<void> _showLocationDialog({
+    required String title,
+    required String message,
+    required String primaryLabel,
+    required Future<void> Function() onPrimaryTap,
+  }) async {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Contact picker will be enabled in next update'),
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: AppColors.textSecondary,
+            height: 1.4,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textHint),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await onPrimaryTap();
+            },
+            child: Text(primaryLabel),
+          ),
+        ],
       ),
     );
+  }
+
+  Future<void> _pickContact() async {
+    try {
+      final status = await FlutterContacts.permissions.request(PermissionType.read);
+      final hasPermission =
+          status == PermissionStatus.granted || status == PermissionStatus.limited;
+
+      if (!hasPermission) {
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: AppColors.bgCard,
+            title: const Text(
+              'Contacts Permission Needed',
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
+            content: const Text(
+              'Please allow contacts access to share a contact card.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: AppColors.textHint),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await FlutterContacts.permissions.openSettings();
+                },
+                child: const Text('Open Settings'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      final selectedId = await FlutterContacts.native.showPicker();
+      if (selectedId == null || selectedId.isEmpty) return;
+
+      final selected = await FlutterContacts.get(
+        selectedId,
+        properties: {ContactProperty.name, ContactProperty.phone},
+      );
+      if (selected == null) return;
+
+      final fullName = (selected.displayName ?? '').trim();
+      final phone = selected.phones.isNotEmpty ? selected.phones.first.number.trim() : '';
+
+      if (phone.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Selected contact has no phone number')),
+        );
+        return;
+      }
+
+      _messageCubit.sendMessage(
+        chatId: widget.chatId,
+        senderId: widget.currentUserId,
+        text: fullName.isEmpty ? phone : fullName,
+        type: 'contact',
+        metadata: {
+          'name': fullName.isEmpty ? 'Contact' : fullName,
+          'phone': phone,
+        },
+      );
+    } catch (e) {
+      debugPrint('Error picking contact: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to pick contact')),
+      );
+    }
   }
 
   Future<void> _handleVoiceAction() async {
@@ -335,11 +493,25 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           _isRecording = true;
           _recordingDuration = 0;
+          _recordingWaves = List<double>.filled(26, 0.2);
         });
 
         _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
           setState(() {
             _recordingDuration++;
+          });
+        });
+
+        Timer.periodic(const Duration(milliseconds: 140), (timer) {
+          if (!_isRecording || !mounted) {
+            timer.cancel();
+            return;
+          }
+          setState(() {
+            _recordingWaves = List.generate(
+              26,
+              (_) => 0.15 + (_random.nextDouble() * 0.85),
+            );
           });
         });
       }
@@ -594,9 +766,30 @@ class _ChatScreenState extends State<ChatScreen> {
                       children: [
                         const Icon(Icons.fiber_manual_record, color: Colors.red, size: 16),
                         const SizedBox(width: 8),
+                        SizedBox(
+                          width: 120,
+                          height: 18,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: _recordingWaves.map((level) {
+                              return Container(
+                                width: 3,
+                                height: 6 + (level * 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Text(
-                          'Recording... ${_recordingDuration ~/ 60}:${(_recordingDuration % 60).toString().padLeft(2, '0')}',
-                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+                          '${_recordingDuration ~/ 60}:${(_recordingDuration % 60).toString().padLeft(2, '0')}',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const Spacer(),
                         const Text('Tap mic to stop', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
