@@ -30,8 +30,11 @@ class AppRoutePaths {
   static const profile = '/home/profile';
 }
 
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
 GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutePaths.splash,
     refreshListenable: GoRouterRefresh(authCubit.stream, onboardingStore),
     redirect: (context, state) {

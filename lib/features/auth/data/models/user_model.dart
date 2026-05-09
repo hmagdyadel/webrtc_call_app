@@ -13,6 +13,7 @@ abstract class UserModel with _$UserModel {
     @Default('') String avatarUrl,
     @Default('') String about,
     @Default('') String birthdate,
+    @Default('') String fcmToken,
     @Default(false) bool isOnline,
     @TimestampConverter() @JsonKey(name: 'last_seen') DateTime? lastSeen,
     @TimestampConverter() @JsonKey(name: 'created_at') DateTime? createdAt,

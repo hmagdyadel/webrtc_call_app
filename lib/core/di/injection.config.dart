@@ -13,6 +13,7 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:sawa/core/network/dio_client.dart' as _i611;
 import 'package:sawa/core/services/presence_service.dart' as _i360;
+import 'package:sawa/core/services/push_notification_service.dart' as _i19;
 import 'package:sawa/features/auth/data/repositories/auth_repository.dart'
     as _i880;
 import 'package:sawa/features/auth/data/sources/auth_remote_source.dart'
@@ -39,6 +40,9 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.singleton<_i611.DioClient>(() => _i611.DioClient());
+    gh.lazySingleton<_i19.PushNotificationService>(
+      () => _i19.PushNotificationService(),
+    );
     gh.lazySingleton<_i1004.UserRemoteSource>(
       () => _i1004.UserRemoteSourceImpl(),
     );

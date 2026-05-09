@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/app.dart';
 import 'core/di/injection.dart';
 import 'core/utils/onboarding_store.dart';
+import 'core/services/push_notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -19,6 +20,10 @@ void main() async {
   if (!getIt.isRegistered<OnboardingStore>()) {
     getIt.registerSingleton<OnboardingStore>(OnboardingStore(prefs));
   }
+  
+  // Initialize Push Notifications
+  await getIt<PushNotificationService>().init();
+
   _configureEasyLoading();
   runApp(const App());
 }
