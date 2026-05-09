@@ -12,6 +12,7 @@ import '../../features/chat/view/screens/home_screen.dart';
 import '../../features/chat/view/screens/new_chat_screen.dart';
 import '../../features/chat/view/screens/my_qr_screen.dart';
 import '../../features/chat/view/screens/qr_scanner_screen.dart';
+import '../../features/profile/view/screens/profile_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
 import '../../features/splash/view/splash_screen.dart';
 import '../../core/di/injection.dart';
@@ -26,6 +27,7 @@ class AppRoutePaths {
   static const chatDetail = '/home/chat/:chatId';
   static const myQr = '/home/qr-my';
   static const qrScanner = '/home/qr-scanner';
+  static const profile = '/home/profile';
 }
 
 GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
@@ -111,6 +113,10 @@ GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
       GoRoute(
         path: AppRoutePaths.qrScanner,
         builder: (context, state) => const QRScannerScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.profile,
+        builder: (context, state) => const ProfileScreen(),
       ),
     ],
   );

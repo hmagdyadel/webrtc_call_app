@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import '../data/repositories/auth_repository.dart';
@@ -81,5 +82,25 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> signOut() async {
     await _repository.signOut();
     emit(const AuthState.unauthenticated());
+  }
+
+  Future<void> updateProfile({
+    String? name,
+    String? birthdate,
+    String? about,
+    File? imageFile,
+  }) async {
+    try {
+      final updatedUser = await _repository.updateUserProfile(
+        name: name,
+        birthdate: birthdate,
+        about: about,
+        imageFile: imageFile,
+      );
+      emit(AuthState.authenticated(user: updatedUser));
+    } catch (e) {
+      // Could emit an error state or handle it via a callback
+      rethrow;
+    }
   }
 }

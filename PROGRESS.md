@@ -13,7 +13,7 @@
 | 10 | Video Calls | 🔲 Planned |
 | 11 | Push Notifications (FCM) | 🔲 Planned |
 | 12 | Native Call UI (CallKit/ConnectionService) | 🔲 Planned |
-| 13 | Profile & Settings | 🔲 Planned |
+| 13 | Profile & Settings | ✅ Complete |
 | 14 | Contacts Sync | 🔲 Planned |
 | 15 | Production Hardening | 🔲 Planned |
 

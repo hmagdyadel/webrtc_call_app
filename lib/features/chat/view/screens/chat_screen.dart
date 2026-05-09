@@ -31,6 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String _otherUserName = '';
   String _otherUserAvatar = '';
+  String _otherUserAbout = '';
 
   @override
   void initState() {
@@ -50,6 +51,7 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() {
         _otherUserName = user.name.isNotEmpty ? user.name : user.phone;
         _otherUserAvatar = user.avatarUrl;
+        _otherUserAbout = user.about;
       });
     }
   }
@@ -123,14 +125,29 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              _otherUserName.isNotEmpty ? _otherUserName : 'Loading...',
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _otherUserName.isNotEmpty ? _otherUserName : 'Loading...',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (_otherUserAbout.isNotEmpty)
+                  Text(
+                    _otherUserAbout,
+                    style: TextStyle(
+                      color: AppColors.textSecondary.withValues(alpha: 0.8),
+                      fontSize: 12,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
             ),
           ),
         ],

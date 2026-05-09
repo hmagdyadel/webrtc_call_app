@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:injectable/injectable.dart';
 import '../models/user_model.dart';
 import '../sources/auth_remote_source.dart';
@@ -18,6 +20,12 @@ abstract class AuthRepository {
   Future<void> signOut();
   bool get isLoggedIn;
   Future<UserModel?> getCurrentUser();
+  Future<UserModel> updateUserProfile({
+    String? name,
+    String? birthdate,
+    String? about,
+    File? imageFile,
+  });
 }
 
 @LazySingleton(as: AuthRepository)
@@ -81,4 +89,39 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> signOut() async => await _authSource.signOut();
+
+  @override
+  Future<UserModel> updateUserProfile({
+    String? name,
+    String? birthdate,
+    String? about,
+    File? imageFile,
+  }) async {
+    final firebaseUser = _authSource.currentUser;
+    if (firebaseUser == null) throw Exception('No user logged in');
+
+    UserModel? currentUser = await _userSource.getUser(firebaseUser.uid);
+    if (currentUser == null) throw Exception('User document not found');
+
+    String avatarUrl = currentUser.avatarUrl;
+
+    if (imageFile != null) {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('user_avatars')
+          .child('${firebaseUser.uid}.jpg');
+      await storageRef.putFile(imageFile);
+      avatarUrl = await storageRef.getDownloadURL();
+    }
+
+    final updatedUser = currentUser.copyWith(
+      name: name ?? currentUser.name,
+      birthdate: birthdate ?? currentUser.birthdate,
+      about: about ?? currentUser.about,
+      avatarUrl: avatarUrl,
+    );
+
+    await _userSource.saveUser(updatedUser);
+    return updatedUser;
+  }
 }

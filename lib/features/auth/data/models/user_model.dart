@@ -10,6 +10,8 @@ abstract class UserModel with _$UserModel {
     required String phone,
     @Default('') String name,
     @Default('') String avatarUrl,
+    @Default('') String about,
+    @Default('') String birthdate,
     @Default(false) bool isOnline,
     @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _UserModel;

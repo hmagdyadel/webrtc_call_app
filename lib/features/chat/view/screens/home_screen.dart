@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../auth/viewmodel/auth_cubit.dart';
+import '../../../auth/viewmodel/auth_state.dart';
 import '../../data/models/chat_model.dart';
 import '../../viewmodel/chat_cubit.dart';
 import '../../viewmodel/chat_state.dart';
@@ -329,28 +330,43 @@ class _MeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bgDark,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        title: const Text('Me',
-            style: TextStyle(color: Colors.white, fontSize: 20,
-                fontWeight: FontWeight.bold)),
-      ),
-      body: Column(
-        children: [
-          ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-            title: const Text('My Profile',
-                style: TextStyle(color: Colors.white)),
-            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        String displayName = 'My Profile';
+        String? avatarUrl;
+
+        state.whenOrNull(
+          authenticated: (user) {
+            displayName = user.name.isNotEmpty ? user.name : user.phone;
+            avatarUrl = user.avatarUrl.isNotEmpty ? user.avatarUrl : null;
+          },
+        );
+
+        return Scaffold(
+          backgroundColor: AppColors.bgDark,
+          appBar: AppBar(
+            backgroundColor: AppColors.bgDark,
+            elevation: 0,
+            title: const Text('Me',
+                style: TextStyle(color: Colors.white, fontSize: 20,
+                    fontWeight: FontWeight.bold)),
           ),
-          ListTile(
-            leading: const Icon(Icons.qr_code, color: Colors.white),
+          body: Column(
+            children: [
+              ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: AppColors.primary,
+                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+                  child: avatarUrl == null ? const Icon(Icons.person, color: Colors.white) : null,
+                ),
+                title: Text(displayName,
+                    style: const TextStyle(color: Colors.white)),
+                subtitle: const Text('Tap to edit profile', style: TextStyle(color: Colors.grey)),
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                onTap: () => context.push(AppRoutePaths.profile),
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code, color: Colors.white),
             title: const Text('My QR Code',
                 style: TextStyle(color: Colors.white)),
             onTap: () => context.push(AppRoutePaths.myQr),
@@ -384,6 +400,8 @@ class _MeTab extends StatelessWidget {
           ),
         ],
       ),
+    );
+      },
     );
   }
 }
