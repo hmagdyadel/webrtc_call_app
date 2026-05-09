@@ -44,7 +44,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _messageCubit = getIt<MessageCubit>();
-    _messageCubit.loadMessages(widget.chatId);
+    _messageCubit.loadMessages(widget.chatId, widget.currentUserId);
     _loadOtherUser();
     
     _toggleTimer = Timer.periodic(const Duration(seconds: 4), (_) {

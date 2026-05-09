@@ -54,6 +54,7 @@ exports.sendChatNotification = functions.firestore
         click_action: "FLUTTER_NOTIFICATION_CLICK",
         chatId: chatId,
         senderId: senderId,
+        messageId: context.params.messageId,
       },
       android: {
         priority: "high",

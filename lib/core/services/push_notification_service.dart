@@ -13,6 +13,26 @@ import 'package:flutter/foundation.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("Handling a background message: ${message.messageId}");
+  _markMessageAsDelivered(message.data);
+}
+
+Future<void> _markMessageAsDelivered(Map<String, dynamic> data) async {
+  try {
+    final chatId = data['chatId'];
+    final messageId = data['messageId'];
+    
+    if (chatId != null && messageId != null) {
+      await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .update({'status': 'delivered'});
+      debugPrint('Marked message $messageId as delivered');
+    }
+  } catch (e) {
+    debugPrint('Error marking message as delivered: $e');
+  }
 }
 
 @lazySingleton
@@ -87,6 +107,7 @@ class PushNotificationService {
 
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('Got a message whilst in the foreground!');
+    _markMessageAsDelivered(message.data);
     if (message.notification != null) {
       _showLocalNotification(message);
     }

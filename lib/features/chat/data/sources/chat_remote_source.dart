@@ -8,7 +8,7 @@ abstract class ChatRemoteSource {
   Future<String> createOrGetChat(String currentUserId, String otherUserId);
   Stream<List<MessageModel>> getMessages(String chatId);
   Future<void> sendMessage(String chatId, MessageModel message);
-  Future<void> markChatAsRead(String chatId);
+  Future<void> markChatAsRead(String chatId, String currentUserId);
 }
 
 @LazySingleton(as: ChatRemoteSource)
@@ -95,9 +95,27 @@ class ChatRemoteSourceImpl implements ChatRemoteSource {
   }
 
   @override
-  Future<void> markChatAsRead(String chatId) async {
-    await _firestore.collection('chats').doc(chatId).update({
-      'unreadCount': 0,
-    });
+  Future<void> markChatAsRead(String chatId, String currentUserId) async {
+    final batch = _firestore.batch();
+
+    // Reset unread count
+    final chatRef = _firestore.collection('chats').doc(chatId);
+    batch.update(chatRef, {'unreadCount': 0});
+
+    // Find all messages from the other user that are not 'read'
+    final unreadMessages = await _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .where('senderId', isNotEqualTo: currentUserId)
+        .get();
+
+    for (var doc in unreadMessages.docs) {
+      if (doc.data()['status'] != 'read') {
+        batch.update(doc.reference, {'status': 'read'});
+      }
+    }
+
+    await batch.commit();
   }
 }

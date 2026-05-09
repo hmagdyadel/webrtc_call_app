@@ -14,12 +14,16 @@ class MessageCubit extends Cubit<MessageState> {
 
   MessageCubit(this._repository) : super(const MessageState.initial());
 
-  void loadMessages(String chatId) {
+  void loadMessages(String chatId, String currentUserId) {
     emit(const MessageState.loading());
-    _repository.markChatAsRead(chatId);
     _subscription?.cancel();
     _subscription = _repository.getMessages(chatId).listen(
-      (messages) => emit(MessageState.loaded(messages: messages)),
+      (messages) {
+        emit(MessageState.loaded(messages: messages));
+        // Whenever we receive new messages while the screen is open,
+        // mark any unread messages from the other user as read.
+        _repository.markChatAsRead(chatId, currentUserId);
+      },
       onError: (e) => emit(MessageState.error(message: e.toString())),
     );
   }
