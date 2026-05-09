@@ -11,7 +11,7 @@
 | 8 | QR Code | ✅ Complete |
 | 9 | WebRTC Voice Calls | 🔲 Next |
 | 10 | Video Calls | 🔲 Planned |
-| 11 | Push Notifications (FCM) | 🔲 Planned |
+| 11 | Push Notifications (FCM) | ✅ Complete |
 | 12 | Native Call UI (CallKit/ConnectionService) | 🔲 Planned |
 | 13 | Profile & Settings | ✅ Complete |
 | 14 | Last Seen & Status Toggle | ✅ Complete |
