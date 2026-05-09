@@ -9,6 +9,7 @@ abstract class ChatRepository {
   Stream<List<MessageModel>> getMessages(String chatId);
   Future<void> sendMessage(String chatId, MessageModel message);
   Future<void> markChatAsRead(String chatId, String currentUserId);
+  Future<String> uploadMedia(String filePath, String storagePath, {Function(double)? onProgress});
 }
 
 @LazySingleton(as: ChatRepository)
@@ -35,4 +36,8 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<void> markChatAsRead(String chatId, String currentUserId) =>
       _source.markChatAsRead(chatId, currentUserId);
+
+  @override
+  Future<String> uploadMedia(String filePath, String storagePath, {Function(double)? onProgress}) =>
+      _source.uploadMedia(filePath, storagePath, onProgress: onProgress);
 }

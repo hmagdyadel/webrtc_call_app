@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:injectable/injectable.dart';
 import '../models/chat_model.dart';
 import '../models/message_model.dart';
@@ -9,12 +11,14 @@ abstract class ChatRemoteSource {
   Stream<List<MessageModel>> getMessages(String chatId);
   Future<void> sendMessage(String chatId, MessageModel message);
   Future<void> markChatAsRead(String chatId, String currentUserId);
+  Future<String> uploadMedia(String filePath, String storagePath, {Function(double)? onProgress});
 }
 
 @LazySingleton(as: ChatRemoteSource)
 class ChatRemoteSourceImpl implements ChatRemoteSource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
+  // We need to import firebase_storage in the file, but we will use FirebaseStorage.instance directly.
+  
   @override
   Stream<List<ChatModel>> getChats(String userId) {
     return _firestore
@@ -74,18 +78,35 @@ class ChatRemoteSourceImpl implements ChatRemoteSource {
         .doc(chatId)
         .collection('messages')
         .doc(message.id);
-    batch.set(msgRef, {
+        
+    final messageData = {
       'senderId': message.senderId,
       'text': message.text,
       'type': message.type,
       'timestamp': FieldValue.serverTimestamp(),
       'status': message.status,
-    });
+    };
+    
+    if (message.mediaUrl != null) {
+      messageData['mediaUrl'] = message.mediaUrl!;
+    }
+    if (message.metadata != null) {
+      messageData['metadata'] = message.metadata!;
+    }
+
+    batch.set(msgRef, messageData);
 
     // Update chat metadata
+    String lastMessageText = message.text;
+    if (message.type == 'image') lastMessageText = '📷 Image';
+    if (message.type == 'video') lastMessageText = '🎥 Video';
+    if (message.type == 'file') lastMessageText = '📄 Document';
+    if (message.type == 'location') lastMessageText = '📍 Location';
+    if (message.type == 'sticker') lastMessageText = '✨ Sticker';
+
     final chatRef = _firestore.collection('chats').doc(chatId);
     batch.update(chatRef, {
-      'lastMessage': message.text,
+      'lastMessage': lastMessageText,
       'lastMessageSenderId': message.senderId,
       'last_message_time': FieldValue.serverTimestamp(),
       'unreadCount': FieldValue.increment(1),
@@ -117,5 +138,22 @@ class ChatRemoteSourceImpl implements ChatRemoteSource {
     }
 
     await batch.commit();
+  }
+
+  @override
+  Future<String> uploadMedia(String filePath, String storagePath, {Function(double)? onProgress}) async {
+    final file = File(filePath);
+    final ref = FirebaseStorage.instance.ref().child(storagePath);
+    final uploadTask = ref.putFile(file);
+    
+    if (onProgress != null) {
+      uploadTask.snapshotEvents.listen((snapshot) {
+        final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        onProgress(progress);
+      });
+    }
+
+    final snapshot = await uploadTask;
+    return await snapshot.ref.getDownloadURL();
   }
 }

@@ -128,12 +128,12 @@ return error(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<MessageModel> messages)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  initial,TResult Function()?  loading,TResult Function( List<MessageModel> messages,  List<MessageModel> localMessages,  Map<String, double> uploadProgress)?  loaded,TResult Function( String message)?  error,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.messages);case _Error() when error != null:
+return loaded(_that.messages,_that.localMessages,_that.uploadProgress);case _Error() when error != null:
 return error(_that.message);case _:
   return orElse();
 
@@ -152,12 +152,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<MessageModel> messages)  loaded,required TResult Function( String message)  error,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  initial,required TResult Function()  loading,required TResult Function( List<MessageModel> messages,  List<MessageModel> localMessages,  Map<String, double> uploadProgress)  loaded,required TResult Function( String message)  error,}) {final _that = this;
 switch (_that) {
 case _Initial():
 return initial();case _Loading():
 return loading();case _Loaded():
-return loaded(_that.messages);case _Error():
+return loaded(_that.messages,_that.localMessages,_that.uploadProgress);case _Error():
 return error(_that.message);case _:
   throw StateError('Unexpected subclass');
 
@@ -175,12 +175,12 @@ return error(_that.message);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<MessageModel> messages)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  initial,TResult? Function()?  loading,TResult? Function( List<MessageModel> messages,  List<MessageModel> localMessages,  Map<String, double> uploadProgress)?  loaded,TResult? Function( String message)?  error,}) {final _that = this;
 switch (_that) {
 case _Initial() when initial != null:
 return initial();case _Loading() when loading != null:
 return loading();case _Loaded() when loaded != null:
-return loaded(_that.messages);case _Error() when error != null:
+return loaded(_that.messages,_that.localMessages,_that.uploadProgress);case _Error() when error != null:
 return error(_that.message);case _:
   return null;
 
@@ -257,7 +257,7 @@ String toString() {
 
 
 class _Loaded implements MessageState {
-  const _Loaded({required final  List<MessageModel> messages}): _messages = messages;
+  const _Loaded({required final  List<MessageModel> messages, final  List<MessageModel> localMessages = const [], final  Map<String, double> uploadProgress = const {}}): _messages = messages,_localMessages = localMessages,_uploadProgress = uploadProgress;
   
 
  final  List<MessageModel> _messages;
@@ -265,6 +265,20 @@ class _Loaded implements MessageState {
   if (_messages is EqualUnmodifiableListView) return _messages;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_messages);
+}
+
+ final  List<MessageModel> _localMessages;
+@JsonKey() List<MessageModel> get localMessages {
+  if (_localMessages is EqualUnmodifiableListView) return _localMessages;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_localMessages);
+}
+
+ final  Map<String, double> _uploadProgress;
+@JsonKey() Map<String, double> get uploadProgress {
+  if (_uploadProgress is EqualUnmodifiableMapView) return _uploadProgress;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_uploadProgress);
 }
 
 
@@ -278,16 +292,16 @@ _$LoadedCopyWith<_Loaded> get copyWith => __$LoadedCopyWithImpl<_Loaded>(this, _
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._messages, _messages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loaded&&const DeepCollectionEquality().equals(other._messages, _messages)&&const DeepCollectionEquality().equals(other._localMessages, _localMessages)&&const DeepCollectionEquality().equals(other._uploadProgress, _uploadProgress));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_messages),const DeepCollectionEquality().hash(_localMessages),const DeepCollectionEquality().hash(_uploadProgress));
 
 @override
 String toString() {
-  return 'MessageState.loaded(messages: $messages)';
+  return 'MessageState.loaded(messages: $messages, localMessages: $localMessages, uploadProgress: $uploadProgress)';
 }
 
 
@@ -298,7 +312,7 @@ abstract mixin class _$LoadedCopyWith<$Res> implements $MessageStateCopyWith<$Re
   factory _$LoadedCopyWith(_Loaded value, $Res Function(_Loaded) _then) = __$LoadedCopyWithImpl;
 @useResult
 $Res call({
- List<MessageModel> messages
+ List<MessageModel> messages, List<MessageModel> localMessages, Map<String, double> uploadProgress
 });
 
 
@@ -315,10 +329,12 @@ class __$LoadedCopyWithImpl<$Res>
 
 /// Create a copy of MessageState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? messages = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? messages = null,Object? localMessages = null,Object? uploadProgress = null,}) {
   return _then(_Loaded(
 messages: null == messages ? _self._messages : messages // ignore: cast_nullable_to_non_nullable
-as List<MessageModel>,
+as List<MessageModel>,localMessages: null == localMessages ? _self._localMessages : localMessages // ignore: cast_nullable_to_non_nullable
+as List<MessageModel>,uploadProgress: null == uploadProgress ? _self._uploadProgress : uploadProgress // ignore: cast_nullable_to_non_nullable
+as Map<String, double>,
   ));
 }
 

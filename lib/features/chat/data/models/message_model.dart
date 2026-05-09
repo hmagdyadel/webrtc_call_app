@@ -25,9 +25,11 @@ abstract class MessageModel with _$MessageModel {
     required String id,
     required String senderId,
     @Default('') String text,
-    @Default('text') String type, // text | image | call_log
+    @Default('text') String type, // text | image | video | file | location | sticker | call_log
     @TimestampConverter() DateTime? timestamp,
     @Default('sent') String status, // sent | delivered | read
+    String? mediaUrl,
+    Map<String, dynamic>? metadata,
   }) = _MessageModel;
 
   factory MessageModel.fromJson(Map<String, dynamic> json) =>

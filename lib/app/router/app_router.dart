@@ -12,6 +12,8 @@ import '../../features/chat/view/screens/home_screen.dart';
 import '../../features/chat/view/screens/new_chat_screen.dart';
 import '../../features/chat/view/screens/my_qr_screen.dart';
 import '../../features/chat/view/screens/qr_scanner_screen.dart';
+import '../../features/chat/view/screens/video_player_screen.dart';
+import '../../features/chat/view/screens/image_preview_screen.dart';
 import '../../features/profile/view/screens/profile_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
 import '../../features/splash/view/splash_screen.dart';
@@ -25,6 +27,8 @@ class AppRoutePaths {
   static const home = '/home';
   static const newChat = '/home/new-chat';
   static const chatDetail = '/home/chat/:chatId';
+  static const videoPlayer = '/home/chat/video-player';
+  static const imagePreview = '/home/chat/image-preview';
   static const myQr = '/home/qr-my';
   static const qrScanner = '/home/qr-scanner';
   static const profile = '/home/profile';
@@ -95,10 +99,26 @@ GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
         builder: (context, state) => const NewChatScreen(),
       ),
       GoRoute(
+        path: AppRoutePaths.videoPlayer,
+        builder: (context, state) {
+          final videoUrl = state.extra as String? ?? '';
+          return VideoPlayerScreen(videoUrl: videoUrl);
+        },
+      ),
+      GoRoute(
+        path: AppRoutePaths.imagePreview,
+        builder: (context, state) {
+          final imagePath = state.extra as String? ?? '';
+          return ImagePreviewScreen(imagePath: imagePath);
+        },
+      ),
+      GoRoute(
         path: AppRoutePaths.chatDetail,
         builder: (context, state) {
           final chatId = state.pathParameters['chatId'] ?? '';
-          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final extra = state.extra is Map<String, dynamic> 
+              ? state.extra as Map<String, dynamic> 
+              : <String, dynamic>{};
           final authState = getIt<AuthCubit>().state;
           final currentUserId = authState.whenOrNull(authenticated: (user) => user.id) ?? '';
           final otherUserId = extra['otherUserId']?.toString() ?? '';

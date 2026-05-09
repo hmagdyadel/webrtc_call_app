@@ -152,15 +152,17 @@ flutter run
 - [x] **Phase 1–4** — Infrastructure, Firebase, Auth, Home & Chat List
 - [x] **Phase 5** — Bug Fixes
 - [x] **Phase 6** — Navigation, Branding, Theme, Splash, Onboarding, App Icon
-- [ ] **Phase 7** — Chat Screen & Real Messaging ← _current_
-- [ ] **Phase 8** — QR Code Contact Discovery
+- [x] **Phase 7** — Chat Screen & Real Messaging
+- [x] **Phase 8** — QR Code Contact Discovery
 - [ ] **Phase 9** — WebRTC Voice Calls
 - [ ] **Phase 10** — Video Calls
 - [ ] **Phase 11** — Push Notifications (FCM)
 - [ ] **Phase 12** — Native Call UI (CallKit / ConnectionService)
-- [ ] **Phase 13** — Profile & Settings
-- [ ] **Phase 14** — Contacts Sync
-- [ ] **Phase 15** — Production Hardening
+- [x] **Phase 13** — Profile & Settings
+- [x] **Phase 14** — Last Seen & Status Toggle
+- [x] **Phase 17** — Multimedia Chat (Images, Videos, Files, Location)
+- [ ] **Phase 15** — Contacts Sync
+- [ ] **Phase 16** — Production Hardening
 
 See [PROGRESS.md](PROGRESS.md) for detailed session logs and current state.
 

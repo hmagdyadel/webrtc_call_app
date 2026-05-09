@@ -14,6 +14,8 @@ _MessageModel _$MessageModelFromJson(Map<String, dynamic> json) =>
       type: json['type'] as String? ?? 'text',
       timestamp: const TimestampConverter().fromJson(json['timestamp']),
       status: json['status'] as String? ?? 'sent',
+      mediaUrl: json['mediaUrl'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$MessageModelToJson(_MessageModel instance) =>
@@ -24,4 +26,6 @@ Map<String, dynamic> _$MessageModelToJson(_MessageModel instance) =>
       'type': instance.type,
       'timestamp': const TimestampConverter().toJson(instance.timestamp),
       'status': instance.status,
+      'mediaUrl': instance.mediaUrl,
+      'metadata': instance.metadata,
     };

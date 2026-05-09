@@ -3,6 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../auth/data/models/user_model.dart';
@@ -102,9 +106,183 @@ class _ChatScreenState extends State<ChatScreen> {
       }
     });
   }
+  void _showAttachmentMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Wrap(
+          runSpacing: 24,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildAttachmentIcon(Icons.insert_drive_file, Colors.indigo, 'Document', _pickDocument),
+                _buildAttachmentIcon(Icons.camera_alt, Colors.pink, 'Camera', _pickCameraImage),
+                _buildAttachmentIcon(Icons.insert_photo, Colors.purple, 'Gallery', _pickGalleryMedia),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildAttachmentIcon(Icons.headset, Colors.orange, 'Audio', () {}), // Future phase
+                _buildAttachmentIcon(Icons.location_on, Colors.green, 'Location', _sendLocation),
+                _buildAttachmentIcon(Icons.person, Colors.blue, 'Contact', () {}), // Future phase
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildAttachmentIcon(IconData icon, Color color, String text, VoidCallback onTap) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context); // Close bottom sheet
+        onTap();
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: color,
+            child: Icon(icon, color: Colors.white, size: 26),
+          ),
+          const SizedBox(height: 8),
+          Text(text, style: const TextStyle(color: AppColors.textPrimary, fontSize: 12)),
+        ],
+      ),
+    );
+  }
 
+  Future<void> _pickDocument() async {
+    try {
+      final result = await FilePicker.pickFiles();
+      if (result != null && result.files.single.path != null) {
+        _messageCubit.sendMediaMessage(
+          chatId: widget.chatId,
+          senderId: widget.currentUserId,
+          filePath: result.files.single.path!,
+          type: 'file',
+          metadata: {'fileName': result.files.single.name, 'size': result.files.single.size},
+        );
+      }
+    } catch (e) {
+      debugPrint('Error picking document: $e');
+    }
+  }
 
+  Future<String?> _cropImage(String path) async {
+    try {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: path,
+        compressQuality: 80,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Edit Image',
+            toolbarColor: AppColors.primary,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false,
+          ),
+          IOSUiSettings(
+            title: 'Edit Image',
+          ),
+        ],
+      );
+      return croppedFile?.path;
+    } catch (e) {
+      debugPrint('Error cropping image: $e');
+      return null;
+    }
+  }
+
+  Future<void> _pickCameraImage() async {
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.camera);
+      if (image != null) {
+        final croppedPath = await _cropImage(image.path);
+        if (croppedPath != null) {
+          _messageCubit.sendMediaMessage(
+            chatId: widget.chatId,
+            senderId: widget.currentUserId,
+            filePath: croppedPath,
+            type: 'image',
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking camera image: $e');
+    }
+  }
+
+  Future<void> _pickGalleryMedia() async {
+    try {
+      final picker = ImagePicker();
+      final media = await picker.pickMedia();
+      if (media != null) {
+        final extension = media.name.split('.').last.toLowerCase();
+        final isVideo = ['mp4', 'mov', 'avi', 'mkv'].contains(extension);
+        
+        if (isVideo) {
+          _messageCubit.sendMediaMessage(
+            chatId: widget.chatId,
+            senderId: widget.currentUserId,
+            filePath: media.path,
+            type: 'video',
+          );
+        } else {
+          final croppedPath = await _cropImage(media.path);
+          if (croppedPath != null) {
+            _messageCubit.sendMediaMessage(
+              chatId: widget.chatId,
+              senderId: widget.currentUserId,
+              filePath: croppedPath,
+              type: 'image',
+            );
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error picking gallery media: $e');
+    }
+  }
+
+  Future<void> _sendLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      
+      if (permission == LocationPermission.deniedForever) return;
+
+      Position position = await Geolocator.getCurrentPosition();
+      
+      _messageCubit.sendLocationMessage(
+        chatId: widget.chatId,
+        senderId: widget.currentUserId,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        address: 'Current Location',
+      );
+    } catch (e) {
+      debugPrint('Error fetching location: $e');
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,8 +415,17 @@ class _ChatScreenState extends State<ChatScreen> {
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
-          loaded: (messages) {
-            if (messages.isEmpty) {
+          loaded: (messages, localMessages, uploadProgress) {
+            final allMessages = [...messages, ...localMessages];
+            // Sort by timestamp if necessary, but since they are at the end, they should naturally be at the bottom
+            allMessages.sort((a, b) {
+              if (a.timestamp == null && b.timestamp == null) return 0;
+              if (a.timestamp == null) return 1; // Put nulls at the end
+              if (b.timestamp == null) return -1;
+              return a.timestamp!.compareTo(b.timestamp!);
+            });
+
+            if (allMessages.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -272,12 +459,13 @@ class _ChatScreenState extends State<ChatScreen> {
             return ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              itemCount: messages.length,
+              itemCount: allMessages.length,
               itemBuilder: (context, index) {
-                final msg = messages[index];
+                final msg = allMessages[index];
                 return MessageBubble(
                   message: msg,
                   isSent: msg.senderId == widget.currentUserId,
+                  uploadProgress: uploadProgress[msg.id],
                 );
               },
             );
@@ -319,6 +507,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   fontSize: 15,
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.attach_file, color: AppColors.textSecondary),
+                  onPressed: _showAttachmentMenu,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,

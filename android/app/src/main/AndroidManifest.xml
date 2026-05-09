@@ -33,6 +33,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
     </application>
     <!-- Required for notification action buttons (Reply, Mark as Read) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

@@ -15,8 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MessageModel {
 
- String get id; String get senderId; String get text; String get type;// text | image | call_log
-@TimestampConverter() DateTime? get timestamp; String get status;
+ String get id; String get senderId; String get text; String get type;// text | image | video | file | location | sticker | call_log
+@TimestampConverter() DateTime? get timestamp; String get status;// sent | delivered | read
+ String? get mediaUrl; Map<String, dynamic>? get metadata;
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +30,16 @@ $MessageModelCopyWith<MessageModel> get copyWith => _$MessageModelCopyWithImpl<M
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.text, text) || other.text == text)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.text, text) || other.text == text)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.status, status) || other.status == status)&&(identical(other.mediaUrl, mediaUrl) || other.mediaUrl == mediaUrl)&&const DeepCollectionEquality().equals(other.metadata, metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,senderId,text,type,timestamp,status);
+int get hashCode => Object.hash(runtimeType,id,senderId,text,type,timestamp,status,mediaUrl,const DeepCollectionEquality().hash(metadata));
 
 @override
 String toString() {
-  return 'MessageModel(id: $id, senderId: $senderId, text: $text, type: $type, timestamp: $timestamp, status: $status)';
+  return 'MessageModel(id: $id, senderId: $senderId, text: $text, type: $type, timestamp: $timestamp, status: $status, mediaUrl: $mediaUrl, metadata: $metadata)';
 }
 
 
@@ -49,7 +50,7 @@ abstract mixin class $MessageModelCopyWith<$Res>  {
   factory $MessageModelCopyWith(MessageModel value, $Res Function(MessageModel) _then) = _$MessageModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String senderId, String text, String type,@TimestampConverter() DateTime? timestamp, String status
+ String id, String senderId, String text, String type,@TimestampConverter() DateTime? timestamp, String status, String? mediaUrl, Map<String, dynamic>? metadata
 });
 
 
@@ -66,7 +67,7 @@ class _$MessageModelCopyWithImpl<$Res>
 
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? senderId = null,Object? text = null,Object? type = null,Object? timestamp = freezed,Object? status = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? senderId = null,Object? text = null,Object? type = null,Object? timestamp = freezed,Object? status = null,Object? mediaUrl = freezed,Object? metadata = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,senderId: null == senderId ? _self.senderId : senderId // ignore: cast_nullable_to_non_nullable
@@ -74,7 +75,9 @@ as String,text: null == text ? _self.text : text // ignore: cast_nullable_to_non
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,timestamp: freezed == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,
+as String,mediaUrl: freezed == mediaUrl ? _self.mediaUrl : mediaUrl // ignore: cast_nullable_to_non_nullable
+as String?,metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 
@@ -159,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String senderId,  String text,  String type, @TimestampConverter()  DateTime? timestamp,  String status)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String senderId,  String text,  String type, @TimestampConverter()  DateTime? timestamp,  String status,  String? mediaUrl,  Map<String, dynamic>? metadata)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MessageModel() when $default != null:
-return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_that.status);case _:
+return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_that.status,_that.mediaUrl,_that.metadata);case _:
   return orElse();
 
 }
@@ -180,10 +183,10 @@ return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String senderId,  String text,  String type, @TimestampConverter()  DateTime? timestamp,  String status)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String senderId,  String text,  String type, @TimestampConverter()  DateTime? timestamp,  String status,  String? mediaUrl,  Map<String, dynamic>? metadata)  $default,) {final _that = this;
 switch (_that) {
 case _MessageModel():
-return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_that.status);case _:
+return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_that.status,_that.mediaUrl,_that.metadata);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +203,10 @@ return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String senderId,  String text,  String type, @TimestampConverter()  DateTime? timestamp,  String status)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String senderId,  String text,  String type, @TimestampConverter()  DateTime? timestamp,  String status,  String? mediaUrl,  Map<String, dynamic>? metadata)?  $default,) {final _that = this;
 switch (_that) {
 case _MessageModel() when $default != null:
-return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_that.status);case _:
+return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_that.status,_that.mediaUrl,_that.metadata);case _:
   return null;
 
 }
@@ -215,16 +218,27 @@ return $default(_that.id,_that.senderId,_that.text,_that.type,_that.timestamp,_t
 @JsonSerializable()
 
 class _MessageModel implements MessageModel {
-  const _MessageModel({required this.id, required this.senderId, this.text = '', this.type = 'text', @TimestampConverter() this.timestamp, this.status = 'sent'});
+  const _MessageModel({required this.id, required this.senderId, this.text = '', this.type = 'text', @TimestampConverter() this.timestamp, this.status = 'sent', this.mediaUrl, final  Map<String, dynamic>? metadata}): _metadata = metadata;
   factory _MessageModel.fromJson(Map<String, dynamic> json) => _$MessageModelFromJson(json);
 
 @override final  String id;
 @override final  String senderId;
 @override@JsonKey() final  String text;
 @override@JsonKey() final  String type;
-// text | image | call_log
+// text | image | video | file | location | sticker | call_log
 @override@TimestampConverter() final  DateTime? timestamp;
 @override@JsonKey() final  String status;
+// sent | delivered | read
+@override final  String? mediaUrl;
+ final  Map<String, dynamic>? _metadata;
+@override Map<String, dynamic>? get metadata {
+  final value = _metadata;
+  if (value == null) return null;
+  if (_metadata is EqualUnmodifiableMapView) return _metadata;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(value);
+}
+
 
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +253,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.text, text) || other.text == text)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.status, status) || other.status == status));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.text, text) || other.text == text)&&(identical(other.type, type) || other.type == type)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp)&&(identical(other.status, status) || other.status == status)&&(identical(other.mediaUrl, mediaUrl) || other.mediaUrl == mediaUrl)&&const DeepCollectionEquality().equals(other._metadata, _metadata));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,senderId,text,type,timestamp,status);
+int get hashCode => Object.hash(runtimeType,id,senderId,text,type,timestamp,status,mediaUrl,const DeepCollectionEquality().hash(_metadata));
 
 @override
 String toString() {
-  return 'MessageModel(id: $id, senderId: $senderId, text: $text, type: $type, timestamp: $timestamp, status: $status)';
+  return 'MessageModel(id: $id, senderId: $senderId, text: $text, type: $type, timestamp: $timestamp, status: $status, mediaUrl: $mediaUrl, metadata: $metadata)';
 }
 
 
@@ -259,7 +273,7 @@ abstract mixin class _$MessageModelCopyWith<$Res> implements $MessageModelCopyWi
   factory _$MessageModelCopyWith(_MessageModel value, $Res Function(_MessageModel) _then) = __$MessageModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String senderId, String text, String type,@TimestampConverter() DateTime? timestamp, String status
+ String id, String senderId, String text, String type,@TimestampConverter() DateTime? timestamp, String status, String? mediaUrl, Map<String, dynamic>? metadata
 });
 
 
@@ -276,7 +290,7 @@ class __$MessageModelCopyWithImpl<$Res>
 
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? senderId = null,Object? text = null,Object? type = null,Object? timestamp = freezed,Object? status = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? senderId = null,Object? text = null,Object? type = null,Object? timestamp = freezed,Object? status = null,Object? mediaUrl = freezed,Object? metadata = freezed,}) {
   return _then(_MessageModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,senderId: null == senderId ? _self.senderId : senderId // ignore: cast_nullable_to_non_nullable
@@ -284,7 +298,9 @@ as String,text: null == text ? _self.text : text // ignore: cast_nullable_to_non
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,timestamp: freezed == timestamp ? _self.timestamp : timestamp // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,
+as String,mediaUrl: freezed == mediaUrl ? _self.mediaUrl : mediaUrl // ignore: cast_nullable_to_non_nullable
+as String?,metadata: freezed == metadata ? _self._metadata : metadata // ignore: cast_nullable_to_non_nullable
+as Map<String, dynamic>?,
   ));
 }
 

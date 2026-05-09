@@ -17,6 +17,7 @@
 | 14 | Last Seen & Status Toggle | ✅ Complete |
 | 15 | Contacts Sync | 🔲 Planned |
 | 16 | Production Hardening | 🔲 Planned |
+| 17 | Multimedia Chat (Images, Videos, Files, Location, Progress) | ✅ Complete |
 
 ---
 
@@ -170,4 +171,30 @@ All must pass before merging to `main`:
 
 ---
 
-*Last updated: May 8, 2026 — Branch: feature/phase-7-chat-messaging*
+---
+
+## Phase 17 — Multimedia Chat (Images, Videos, Files, Location, Progress) ✅
+
+### 17a: Media Support Architecture ✅
+- Updated `MessageModel` to include `mediaUrl` and `metadata`
+- Implemented `uploadMedia` in `ChatRepository` using Firebase Storage
+- Enhanced `MessageCubit` with `sendMediaMessage` and `sendLocationMessage`
+
+### 17b: UI/UX & Attachment Menu ✅
+- WhatsApp-style attachment menu in `ChatScreen` (Document, Camera, Gallery, Audio, Location, Contact)
+- Dynamic `MessageBubble` rendering for:
+  - **Images**: Inline with `CachedNetworkImage`
+  - **Videos**: Placeholder with play button + `VideoPlayerScreen`
+  - **Files**: Document card with name and size (placeholder)
+  - **Location**: Maps pin linking to native Map apps
+  - **Stickers**: Clean transparent bubble rendering
+
+### 17c: Advanced Features ✅
+- **Real-time Upload Progress**: Circular progress indicator on local media bubbles before database submission
+- **Image Cropper**: Integrated `image_cropper` for editing/cropping images before sending
+- **Full-screen Viewer**: Zoomable `ImagePreviewScreen` with `InteractiveViewer`
+- **Route Safety**: Reordered router paths to prevent collisions between `:chatId` and static media routes
+
+---
+
+*Last updated: May 9, 2026 — Branch: feature/phase-17-multimedia-chat*
