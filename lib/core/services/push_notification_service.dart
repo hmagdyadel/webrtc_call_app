@@ -10,13 +10,17 @@ import '../../app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
 
-// Top-level function for background messages
+// Top-level function for background FCM messages
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("Handling a background message: ${message.messageId}");
-  await _markMessageAsDelivered(message.data);
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase already initialized or error: $e');
+  }
+  _markMessageAsDelivered(message.data);
 
-  // Manually show notification for Android data-only messages
   final title = message.notification?.title ?? message.data['title'] ?? 'New Message';
   final body = message.notification?.body ?? message.data['body'] ?? '';
 
@@ -28,14 +32,20 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     priority: Priority.high,
     styleInformation: BigTextStyleInformation(body),
     actions: <AndroidNotificationAction>[
+      // Reply: opens the app and navigates to chat
       const AndroidNotificationAction(
         'reply',
         'Reply',
-        inputs: <AndroidNotificationActionInput>[
-          AndroidNotificationActionInput(label: 'Reply...'),
-        ],
+        showsUserInterface: true,
+        cancelNotification: true,
       ),
-      const AndroidNotificationAction('mark_read', 'Mark as Read'),
+      // Mark as Read: opens app briefly to ensure reliable execution
+      const AndroidNotificationAction(
+        'mark_read',
+        'Mark as Read',
+        showsUserInterface: true,
+        cancelNotification: true,
+      ),
     ],
   );
 
@@ -49,83 +59,59 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
 }
 
+/// Background handler for notification actions.
+/// Now works because ActionBroadcastReceiver is registered in AndroidManifest.xml.
 @pragma('vm:entry-point')
 void _onDidReceiveBackgroundNotificationResponse(NotificationResponse response) async {
+  debugPrint('Background notification action received: ${response.actionId}');
+
+  if (response.payload == null) return;
+
   try {
     await Firebase.initializeApp();
   } catch (e) {
     debugPrint('Firebase already initialized or error: $e');
   }
 
-  if (response.payload == null) return;
   final data = jsonDecode(response.payload!);
   final chatId = data['chatId'];
-  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  final currentUserId = data['receiverId'];
 
   if (response.actionId == 'mark_read') {
     if (chatId != null && currentUserId != null) {
-      final batch = FirebaseFirestore.instance.batch();
-      final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
-      batch.update(chatRef, {'unreadCount': 0});
+      try {
+        final batch = FirebaseFirestore.instance.batch();
+        final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+        batch.update(chatRef, {'unreadCount': 0});
 
-      final unreadMsgs = await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .where('senderId', isNotEqualTo: currentUserId)
-          .get();
+        final unreadMsgs = await FirebaseFirestore.instance
+            .collection('chats')
+            .doc(chatId)
+            .collection('messages')
+            .where('senderId', isNotEqualTo: currentUserId)
+            .get();
 
-      for (var doc in unreadMsgs.docs) {
-        if (doc.data()['status'] != 'read') {
-          batch.update(doc.reference, {'status': 'read'});
+        for (var doc in unreadMsgs.docs) {
+          if (doc.data()['status'] != 'read') {
+            batch.update(doc.reference, {'status': 'read'});
+          }
         }
-      }
-      await batch.commit();
-      
-      if (response.id != null) {
-        FlutterLocalNotificationsPlugin().cancel(id: response.id!);
-      }
-    }
-  } else if (response.actionId == 'reply') {
-    final replyText = response.input;
-    if (replyText != null && replyText.isNotEmpty && chatId != null && currentUserId != null) {
-      final batch = FirebaseFirestore.instance.batch();
-      final msgRef = FirebaseFirestore.instance
-          .collection('chats')
-          .doc(chatId)
-          .collection('messages')
-          .doc();
-      
-      batch.set(msgRef, {
-        'senderId': currentUserId,
-        'text': replyText.trim(),
-        'type': 'text',
-        'timestamp': FieldValue.serverTimestamp(),
-        'status': 'sent',
-      });
-
-      final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
-      batch.update(chatRef, {
-        'lastMessage': replyText.trim(),
-        'lastMessageSenderId': currentUserId,
-        'last_message_time': FieldValue.serverTimestamp(),
-        'unreadCount': FieldValue.increment(1),
-      });
-
-      await batch.commit();
-      
-      if (response.id != null) {
-        FlutterLocalNotificationsPlugin().cancel(id: response.id!);
+        await batch.commit();
+        debugPrint('✅ Marked chat $chatId as read');
+      } catch (e) {
+        debugPrint('Error marking as read: $e');
       }
     }
   }
+  // Reply action uses showsUserInterface: true, so it's handled
+  // by the foreground onDidReceiveNotificationResponse callback.
 }
 
 Future<void> _markMessageAsDelivered(Map<String, dynamic> data) async {
   try {
     final chatId = data['chatId'];
     final messageId = data['messageId'];
-    
+
     if (chatId != null && messageId != null) {
       await FirebaseFirestore.instance
           .collection('chats')
@@ -202,18 +188,58 @@ class PushNotificationService {
     await _localNotifications.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (response) {
-        if (response.actionId != null) {
-          // If the user tapped an action button (reply or mark read)
-          // while the app was in the foreground/background
-          _onDidReceiveBackgroundNotificationResponse(response);
-        } else if (response.payload != null) {
-          // If the user tapped the notification body itself
-          final data = jsonDecode(response.payload!);
+        debugPrint('Foreground notification action: ${response.actionId}');
+
+        if (response.payload == null) return;
+        final data = jsonDecode(response.payload!);
+
+        if (response.actionId == 'reply') {
+          // Reply: navigate to the chat screen
+          _handlePayloadNavigation(data);
+        } else if (response.actionId == 'mark_read') {
+          // Mark as Read while app is in foreground
+          _markChatAsRead(data);
+          if (response.id != null) {
+            _localNotifications.cancel(id: response.id!);
+          }
+        } else {
+          // User tapped the notification body → open chat
           _handlePayloadNavigation(data);
         }
       },
       onDidReceiveBackgroundNotificationResponse: _onDidReceiveBackgroundNotificationResponse,
     );
+  }
+
+  /// Marks all messages in a chat as read.
+  Future<void> _markChatAsRead(Map<String, dynamic> data) async {
+    final chatId = data['chatId'];
+    final currentUserId = data['receiverId'] ?? FirebaseAuth.instance.currentUser?.uid;
+
+    if (chatId == null || currentUserId == null) return;
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+      batch.update(chatRef, {'unreadCount': 0});
+
+      final unreadMsgs = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('senderId', isNotEqualTo: currentUserId)
+          .get();
+
+      for (var doc in unreadMsgs.docs) {
+        if (doc.data()['status'] != 'read') {
+          batch.update(doc.reference, {'status': 'read'});
+        }
+      }
+      await batch.commit();
+      debugPrint('✅ Marked chat $chatId as read (foreground)');
+    } catch (e) {
+      debugPrint('Error marking as read: $e');
+    }
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
@@ -225,7 +251,7 @@ class PushNotificationService {
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final title = message.notification?.title ?? message.data['title'] ?? 'New Message';
     final body = message.notification?.body ?? message.data['body'] ?? '';
-    
+
     final androidDetails = AndroidNotificationDetails(
       'chat_messages',
       'Chat Messages',
@@ -237,13 +263,14 @@ class PushNotificationService {
         const AndroidNotificationAction(
           'reply',
           'Reply',
-          inputs: <AndroidNotificationActionInput>[
-            AndroidNotificationActionInput(label: 'Reply...'),
-          ],
+          showsUserInterface: true,
+          cancelNotification: true,
         ),
         const AndroidNotificationAction(
           'mark_read',
           'Mark as Read',
+          showsUserInterface: true,
+          cancelNotification: true,
         ),
       ],
     );
@@ -271,7 +298,7 @@ class PushNotificationService {
     final chatId = data['chatId'];
     if (chatId != null && rootNavigatorKey.currentContext != null) {
       rootNavigatorKey.currentContext!.push('/home/chat/$chatId', extra: {
-        'otherUserId': data['senderId'], // Assuming senderId is passed in the payload
+        'otherUserId': data['senderId'],
       });
     }
   }
