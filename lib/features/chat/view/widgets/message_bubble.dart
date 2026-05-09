@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../data/models/message_model.dart';
+import 'audio_player_widget.dart';
 
 class MessageBubble extends StatelessWidget {
   final MessageModel message;
@@ -313,15 +314,25 @@ class MessageBubble extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 120,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Icon(Icons.location_on, size: 48, color: Colors.redAccent),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(
+                  imageUrl: 'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=${message.metadata?['longitude']},${message.metadata?['latitude']}&z=15&l=map&size=450,250&pt=${message.metadata?['longitude']},${message.metadata?['latitude']},pm2rdm',
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    height: 150,
+                    color: Colors.grey.withValues(alpha: 0.2),
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: 150,
+                    color: Colors.grey.withValues(alpha: 0.2),
+                    child: const Center(
+                      child: Icon(Icons.location_on, size: 48, color: Colors.redAccent),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -337,6 +348,63 @@ class MessageBubble extends StatelessWidget {
               ),
             ],
           ),
+        );
+      case 'audio':
+        return AudioPlayerWidget(
+          url: message.mediaUrl ?? '',
+          isSent: isSent,
+          localPath: localPath,
+        );
+      case 'contact':
+        final contactName = message.metadata?['name'] ?? 'Contact';
+        final contactPhone = message.metadata?['phone'] ?? '';
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: isSent ? Colors.white24 : AppColors.primary.withValues(alpha: 0.1),
+                  child: Icon(Icons.person, color: textColor),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        contactName,
+                        style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (contactPhone.isNotEmpty)
+                        Text(
+                          contactPhone,
+                          style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 13),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(color: Colors.white24, height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () async {
+                  final url = Uri.parse('tel:$contactPhone');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url);
+                  }
+                },
+                child: Text(
+                  'Call Contact',
+                  style: TextStyle(color: textColor, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
         );
       case 'text':
       default:

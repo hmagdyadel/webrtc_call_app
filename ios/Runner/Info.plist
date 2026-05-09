@@ -67,6 +67,12 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>This app requires camera access to scan QR codes for adding contacts.</string>
+	<string>This app requires camera access to scan QR codes and take photos to share in chat.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires microphone access to record and send audio messages in chat.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>This app requires contacts access to allow you to share contacts with your friends.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires photo library access to share photos and videos in chat.</string>
 </dict>
 </plist>

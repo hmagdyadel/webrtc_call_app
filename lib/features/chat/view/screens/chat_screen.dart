@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../auth/data/models/user_model.dart';
@@ -44,9 +47,16 @@ class _ChatScreenState extends State<ChatScreen> {
   Timer? _toggleTimer;
   bool _showAbout = true;
 
+  bool _isTextNotEmpty = false;
+  bool _isRecording = false;
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  Timer? _recordingTimer;
+  int _recordingDuration = 0;
+
   @override
   void initState() {
     super.initState();
+    _controller.addListener(_onTextChanged);
     _messageCubit = getIt<MessageCubit>();
     _messageCubit.loadMessages(widget.chatId, widget.currentUserId);
     _loadOtherUser();
@@ -60,12 +70,20 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _onTextChanged() {
+    setState(() {
+      _isTextNotEmpty = _controller.text.trim().isNotEmpty;
+    });
+  }
+
   @override
   void dispose() {
     _toggleTimer?.cancel();
+    _recordingTimer?.cancel();
+    _audioRecorder.dispose();
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _scrollController.dispose();
-    _messageCubit.close();
     super.dispose();
   }
 
@@ -131,9 +149,9 @@ class _ChatScreenState extends State<ChatScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildAttachmentIcon(Icons.headset, Colors.orange, 'Audio', () {}), // Future phase
+                _buildAttachmentIcon(Icons.headset, Colors.orange, 'Audio', () {}), 
                 _buildAttachmentIcon(Icons.location_on, Colors.green, 'Location', _sendLocation),
-                _buildAttachmentIcon(Icons.person, Colors.blue, 'Contact', () {}), // Future phase
+                _buildAttachmentIcon(Icons.person, Colors.blue, 'Contact', _pickContact),
               ],
             ),
           ],
@@ -281,6 +299,77 @@ class _ChatScreenState extends State<ChatScreen> {
       );
     } catch (e) {
       debugPrint('Error fetching location: $e');
+    }
+  }
+
+  Future<void> _pickContact() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Contact picker will be enabled in next update'),
+      ),
+    );
+  }
+
+  Future<void> _handleVoiceAction() async {
+    if (_isTextNotEmpty) {
+      _send();
+    } else {
+      if (_isRecording) {
+        await _stopRecording();
+      } else {
+        await _startRecording();
+      }
+    }
+  }
+
+  Future<void> _startRecording() async {
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = p.join(directory.path, 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a');
+        
+        const config = RecordConfig();
+        await _audioRecorder.start(config, path: path);
+
+        setState(() {
+          _isRecording = true;
+          _recordingDuration = 0;
+        });
+
+        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          setState(() {
+            _recordingDuration++;
+          });
+        });
+      }
+    } catch (e) {
+      debugPrint('Error starting recording: $e');
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    try {
+      final path = await _audioRecorder.stop();
+      _recordingTimer?.cancel();
+
+      setState(() {
+        _isRecording = false;
+      });
+
+      if (path != null) {
+        _messageCubit.sendMediaMessage(
+          chatId: widget.chatId,
+          senderId: widget.currentUserId,
+          filePath: path,
+          type: 'audio',
+          metadata: {
+            'duration': _recordingDuration,
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('Error stopping recording: $e');
     }
   }
   @override
@@ -493,48 +582,73 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: _controller,
-              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
-              textInputAction: TextInputAction.send,
-              onSubmitted: (_) => _send(),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: AppColors.bgInput,
-                hintText: 'Type a message...',
-                hintStyle: TextStyle(
-                  color: AppColors.textHint.withValues(alpha: 0.6),
-                  fontSize: 15,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.attach_file, color: AppColors.textSecondary),
-                  onPressed: _showAttachmentMenu,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: AppColors.divider, width: 1.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: AppColors.accent, width: 1.0),
-                ),
-              ),
-            ),
+            child: _isRecording
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgInput,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.fiber_manual_record, color: Colors.red, size: 16),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Recording... ${_recordingDuration ~/ 60}:${(_recordingDuration % 60).toString().padLeft(2, '0')}',
+                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w500),
+                        ),
+                        const Spacer(),
+                        const Text('Tap mic to stop', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      ],
+                    ),
+                  )
+                : TextField(
+                    controller: _controller,
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _send(),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.bgInput,
+                      hintText: 'Type a message...',
+                      hintStyle: TextStyle(
+                        color: AppColors.textHint.withValues(alpha: 0.6),
+                        fontSize: 15,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.attach_file, color: AppColors.textSecondary),
+                        onPressed: _showAttachmentMenu,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: const BorderSide(color: AppColors.divider, width: 1.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: const BorderSide(color: AppColors.accent, width: 1.0),
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(width: 8),
           Container(
-            decoration: const BoxDecoration(
-              color: AppColors.accent,
+            decoration: BoxDecoration(
+              color: _isRecording ? Colors.red : AppColors.accent,
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-              onPressed: _send,
+              icon: Icon(
+                _isTextNotEmpty ? Icons.send_rounded : Icons.mic_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              onPressed: _handleVoiceAction,
             ),
           ),
         ],

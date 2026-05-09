@@ -17,7 +17,7 @@
 | 14 | Last Seen & Status Toggle | ✅ Complete |
 | 15 | Contacts Sync | 🔲 Planned |
 | 16 | Production Hardening | 🔲 Planned |
-| 17 | Multimedia Chat (Images, Videos, Files, Location, Progress) | ✅ Complete |
+| 17 | Multimedia Chat (Audio, Location, Contacts, Progress) | ✅ Complete |
 
 ---
 
@@ -180,21 +180,16 @@ All must pass before merging to `main`:
 - Implemented `uploadMedia` in `ChatRepository` using Firebase Storage
 - Enhanced `MessageCubit` with `sendMediaMessage` and `sendLocationMessage`
 
-### 17b: UI/UX & Attachment Menu ✅
-- WhatsApp-style attachment menu in `ChatScreen` (Document, Camera, Gallery, Audio, Location, Contact)
-- Dynamic `MessageBubble` rendering for:
-  - **Images**: Inline with `CachedNetworkImage`
-  - **Videos**: Placeholder with play button + `VideoPlayerScreen`
-  - **Files**: Document card with name and size (placeholder)
-  - **Location**: Maps pin linking to native Map apps
-  - **Stickers**: Clean transparent bubble rendering
+### 17b: Audio & Location Sharing ✅
+- **Audio Messaging**: Integrated `record` and `audioplayers` for WhatsApp-style voice notes
+- **Dynamic Input Bar**: Mic/Send button toggle based on text input
+- **Location Sharing**: Added static map preview using Yandex/OpenStreetMap API
 
-### 17c: Advanced Features ✅
-- **Real-time Upload Progress**: Circular progress indicator on local media bubbles before database submission
-- **Image Cropper**: Integrated `image_cropper` for editing/cropping images before sending
-- **Full-screen Viewer**: Zoomable `ImagePreviewScreen` with `InteractiveViewer`
-- **Route Safety**: Reordered router paths to prevent collisions between `:chatId` and static media routes
+### 17c: Contacts & Files ✅
+- **Contact Sharing**: Native contact picker and interactive contact bubbles
+- **File Messaging**: Improved document picking with `file_picker`
+- **Upload Flow**: Real-time progress indicators for all media types
 
 ---
 
-*Last updated: May 9, 2026 — Branch: feature/phase-17-multimedia-chat*
+*Last updated: May 10, 2026 — Branch: main*
