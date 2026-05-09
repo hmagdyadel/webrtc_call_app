@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,78 @@ import 'package:flutter/foundation.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint("Handling a background message: ${message.messageId}");
   _markMessageAsDelivered(message.data);
+}
+
+@pragma('vm:entry-point')
+void _onDidReceiveBackgroundNotificationResponse(NotificationResponse response) async {
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase already initialized or error: $e');
+  }
+
+  if (response.payload == null) return;
+  final data = jsonDecode(response.payload!);
+  final chatId = data['chatId'];
+  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+  if (response.actionId == 'mark_read') {
+    if (chatId != null && currentUserId != null) {
+      final batch = FirebaseFirestore.instance.batch();
+      final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+      batch.update(chatRef, {'unreadCount': 0});
+
+      final unreadMsgs = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('senderId', isNotEqualTo: currentUserId)
+          .get();
+
+      for (var doc in unreadMsgs.docs) {
+        if (doc.data()['status'] != 'read') {
+          batch.update(doc.reference, {'status': 'read'});
+        }
+      }
+      await batch.commit();
+      
+      if (response.id != null) {
+        FlutterLocalNotificationsPlugin().cancel(response.id!);
+      }
+    }
+  } else if (response.actionId == 'reply') {
+    final replyText = response.input;
+    if (replyText != null && replyText.isNotEmpty && chatId != null && currentUserId != null) {
+      final batch = FirebaseFirestore.instance.batch();
+      final msgRef = FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc();
+      
+      batch.set(msgRef, {
+        'senderId': currentUserId,
+        'text': replyText.trim(),
+        'type': 'text',
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': 'sent',
+      });
+
+      final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+      batch.update(chatRef, {
+        'lastMessage': replyText.trim(),
+        'lastMessageSenderId': currentUserId,
+        'last_message_time': FieldValue.serverTimestamp(),
+        'unreadCount': FieldValue.increment(1),
+      });
+
+      await batch.commit();
+      
+      if (response.id != null) {
+        FlutterLocalNotificationsPlugin().cancel(response.id!);
+      }
+    }
+  }
 }
 
 Future<void> _markMessageAsDelivered(Map<String, dynamic> data) async {
@@ -97,11 +170,17 @@ class PushNotificationService {
     await _localNotifications.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (response) {
-        if (response.payload != null) {
+        if (response.actionId != null) {
+          // If the user tapped an action button (reply or mark read)
+          // while the app was in the foreground/background
+          _onDidReceiveBackgroundNotificationResponse(response);
+        } else if (response.payload != null) {
+          // If the user tapped the notification body itself
           final data = jsonDecode(response.payload!);
           _handlePayloadNavigation(data);
         }
       },
+      onDidReceiveBackgroundNotificationResponse: _onDidReceiveBackgroundNotificationResponse,
     );
   }
 
@@ -114,12 +193,28 @@ class PushNotificationService {
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
-    const androidDetails = AndroidNotificationDetails(
+    final androidDetails = AndroidNotificationDetails(
       'chat_messages',
       'Chat Messages',
       channelDescription: 'Notifications for incoming chat messages',
       importance: Importance.max,
       priority: Priority.high,
+      styleInformation: BigTextStyleInformation(
+        message.notification?.body ?? '',
+      ),
+      actions: <AndroidNotificationAction>[
+        const AndroidNotificationAction(
+          'reply',
+          'Reply',
+          inputs: <AndroidNotificationActionInput>[
+            AndroidNotificationActionInput(label: 'Reply...'),
+          ],
+        ),
+        const AndroidNotificationAction(
+          'mark_read',
+          'Mark as Read',
+        ),
+      ],
     );
     const darwinDetails = DarwinNotificationDetails(
       presentAlert: true,
