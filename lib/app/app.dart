@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../core/di/injection.dart';
 import '../core/utils/onboarding_store.dart';
+import '../core/services/presence_service.dart';
 import '../features/auth/viewmodel/auth_cubit.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
@@ -18,6 +19,10 @@ class App extends StatelessWidget {
         builder: (context) {
           final authCubit = context.read<AuthCubit>();
           final onboardingStore = getIt<OnboardingStore>();
+          
+          // Initialize presence tracking
+          getIt<PresenceService>().initialize();
+
           final router = createAppRouter(authCubit, onboardingStore);
 
           return MaterialApp.router(

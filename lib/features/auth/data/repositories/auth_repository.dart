@@ -26,6 +26,7 @@ abstract class AuthRepository {
     String? about,
     File? imageFile,
   });
+  Future<void> updatePresence(bool isOnline);
 }
 
 @LazySingleton(as: AuthRepository)
@@ -123,5 +124,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
     await _userSource.saveUser(updatedUser);
     return updatedUser;
+  }
+
+  @override
+  Future<void> updatePresence(bool isOnline) async {
+    final firebaseUser = _authSource.currentUser;
+    if (firebaseUser != null) {
+      try {
+        await _userSource.updatePresence(firebaseUser.uid, isOnline);
+      } catch (_) {
+        // Ignore presence update errors (e.g. if document doesn't exist yet)
+      }
+    }
   }
 }

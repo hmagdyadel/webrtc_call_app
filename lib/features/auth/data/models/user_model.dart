@@ -13,6 +13,7 @@ abstract class UserModel with _$UserModel {
     @Default('') String about,
     @Default('') String birthdate,
     @Default(false) bool isOnline,
+    @JsonKey(name: 'last_seen') DateTime? lastSeen,
     @JsonKey(name: 'created_at') DateTime? createdAt,
   }) = _UserModel;
 

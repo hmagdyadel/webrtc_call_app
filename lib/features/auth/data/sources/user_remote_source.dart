@@ -6,6 +6,7 @@ abstract class UserRemoteSource {
   Future<void> saveUser(UserModel user);
   Future<UserModel?> getUser(String uid);
   Future<bool> userExists(String uid);
+  Future<void> updatePresence(String uid, bool isOnline);
 }
 
 @LazySingleton(as: UserRemoteSource)
@@ -33,5 +34,13 @@ class UserRemoteSourceImpl implements UserRemoteSource {
   Future<bool> userExists(String uid) async {
     final doc = await _firestore.collection(_collection).doc(uid).get();
     return doc.exists;
+  }
+
+  @override
+  Future<void> updatePresence(String uid, bool isOnline) async {
+    await _firestore.collection(_collection).doc(uid).update({
+      'isOnline': isOnline,
+      'last_seen': FieldValue.serverTimestamp(),
+    });
   }
 }

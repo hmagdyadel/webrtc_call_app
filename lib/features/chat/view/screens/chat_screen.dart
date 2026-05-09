@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/di/injection.dart';
@@ -32,6 +34,11 @@ class _ChatScreenState extends State<ChatScreen> {
   String _otherUserName = '';
   String _otherUserAvatar = '';
   String _otherUserAbout = '';
+  bool _isOtherUserOnline = false;
+  DateTime? _otherUserLastSeen;
+  
+  Timer? _toggleTimer;
+  bool _showAbout = true;
 
   @override
   void initState() {
@@ -39,6 +46,23 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageCubit = getIt<MessageCubit>();
     _messageCubit.loadMessages(widget.chatId);
     _loadOtherUser();
+    
+    _toggleTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (mounted) {
+        setState(() {
+          _showAbout = !_showAbout;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _toggleTimer?.cancel();
+    _controller.dispose();
+    _scrollController.dispose();
+    _messageCubit.close();
+    super.dispose();
   }
 
   Future<void> _loadOtherUser() async {
@@ -52,6 +76,8 @@ class _ChatScreenState extends State<ChatScreen> {
         _otherUserName = user.name.isNotEmpty ? user.name : user.phone;
         _otherUserAvatar = user.avatarUrl;
         _otherUserAbout = user.about;
+        _isOtherUserOnline = user.isOnline;
+        _otherUserLastSeen = user.lastSeen;
       });
     }
   }
@@ -77,13 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    _scrollController.dispose();
-    _messageCubit.close();
-    super.dispose();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -138,15 +158,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (_otherUserAbout.isNotEmpty)
-                  Text(
-                    _otherUserAbout,
-                    style: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.8),
-                      fontSize: 12,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  child: _buildSubtitle(),
+                ),
               ],
             ),
           ),
@@ -165,6 +180,52 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ],
     );
+  }
+
+  Widget _buildSubtitle() {
+    if (_isOtherUserOnline) {
+      return Text(
+        'Online',
+        key: const ValueKey('online'),
+        style: TextStyle(color: AppColors.online.withValues(alpha: 0.9), fontSize: 12),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    if (_showAbout && _otherUserAbout.isNotEmpty) {
+      return Text(
+        _otherUserAbout,
+        key: const ValueKey('about'),
+        style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.8), fontSize: 12),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    if (_otherUserLastSeen != null) {
+      return Text(
+        'Last seen ${_formatLastSeen(_otherUserLastSeen!)}',
+        key: const ValueKey('last_seen'),
+        style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.8), fontSize: 12),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    return const SizedBox.shrink(key: ValueKey('empty'));
+  }
+
+  String _formatLastSeen(DateTime lastSeen) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateToCheck = DateTime(lastSeen.year, lastSeen.month, lastSeen.day);
+
+    if (dateToCheck == today) {
+      return 'today at ${DateFormat('jm').format(lastSeen)}';
+    } else if (dateToCheck == yesterday) {
+      return 'yesterday at ${DateFormat('jm').format(lastSeen)}';
+    } else {
+      return DateFormat('MMM d, yyyy').format(lastSeen);
+    }
   }
 
   Widget _buildMessageList() {

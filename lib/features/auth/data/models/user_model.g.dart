@@ -14,6 +14,9 @@ _UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
   about: json['about'] as String? ?? '',
   birthdate: json['birthdate'] as String? ?? '',
   isOnline: json['isOnline'] as bool? ?? false,
+  lastSeen: json['last_seen'] == null
+      ? null
+      : DateTime.parse(json['last_seen'] as String),
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),
@@ -28,5 +31,6 @@ Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
       'about': instance.about,
       'birthdate': instance.birthdate,
       'isOnline': instance.isOnline,
+      'last_seen': instance.lastSeen?.toIso8601String(),
       'created_at': instance.createdAt?.toIso8601String(),
     };

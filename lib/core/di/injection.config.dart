@@ -12,6 +12,7 @@
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:sawa/core/network/dio_client.dart' as _i611;
+import 'package:sawa/core/services/presence_service.dart' as _i360;
 import 'package:sawa/features/auth/data/repositories/auth_repository.dart'
     as _i880;
 import 'package:sawa/features/auth/data/sources/auth_remote_source.dart'
@@ -64,6 +65,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i804.AuthCubit>(
       () => _i804.AuthCubit(gh<_i880.AuthRepository>()),
+    );
+    gh.lazySingleton<_i360.PresenceService>(
+      () => _i360.PresenceService(gh<_i880.AuthRepository>()),
     );
     gh.factory<_i283.ChatCubit>(
       () => _i283.ChatCubit(gh<_i697.ChatRepository>()),

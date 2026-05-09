@@ -14,8 +14,9 @@
 | 11 | Push Notifications (FCM) | 🔲 Planned |
 | 12 | Native Call UI (CallKit/ConnectionService) | 🔲 Planned |
 | 13 | Profile & Settings | ✅ Complete |
-| 14 | Contacts Sync | 🔲 Planned |
-| 15 | Production Hardening | 🔲 Planned |
+| 14 | Last Seen & Status Toggle | ✅ Complete |
+| 15 | Contacts Sync | 🔲 Planned |
+| 16 | Production Hardening | 🔲 Planned |
 
 ---
 
