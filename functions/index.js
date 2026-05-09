@@ -22,7 +22,7 @@ exports.sendChatNotification = functions.firestore
     if (!chatDoc.exists) return null;
 
     const chatData = chatDoc.data();
-    const participants = chatData.participants || [];
+    const participants = chatData.members || [];
     
     // Find the receiver's ID (the person who is NOT the sender)
     const receiverId = participants.find(id => id !== senderId);

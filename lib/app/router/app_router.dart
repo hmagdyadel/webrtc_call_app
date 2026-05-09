@@ -98,10 +98,10 @@ GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
         path: AppRoutePaths.chatDetail,
         builder: (context, state) {
           final chatId = state.pathParameters['chatId'] ?? '';
-          final extra = state.extra as Map<String, String>? ?? {};
+          final extra = state.extra as Map<String, dynamic>? ?? {};
           final authState = getIt<AuthCubit>().state;
           final currentUserId = authState.whenOrNull(authenticated: (user) => user.id) ?? '';
-          final otherUserId = extra['otherUserId'] ?? '';
+          final otherUserId = extra['otherUserId']?.toString() ?? '';
           return ChatScreen(
             chatId: chatId,
             currentUserId: currentUserId,
