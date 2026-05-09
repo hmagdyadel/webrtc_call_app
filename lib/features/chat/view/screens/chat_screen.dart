@@ -117,18 +117,19 @@ class _ChatScreenState extends State<ChatScreen> {
       text: text,
     );
     _controller.clear();
-    // Scroll to bottom after short delay for Firestore update
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+          0.0,
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
       }
     });
   }
+
   void _showAttachmentMenu() {
+    final colors = context.sawaColors;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -136,7 +137,7 @@ class _ChatScreenState extends State<ChatScreen> {
         margin: const EdgeInsets.all(12),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: AppColors.bgCard,
+          color: colors.card,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Wrap(
@@ -167,7 +168,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildAttachmentIcon(IconData icon, Color color, String text, VoidCallback onTap) {
     return InkWell(
       onTap: () {
-        Navigator.pop(context); // Close bottom sheet
+        Navigator.pop(context); 
         onTap();
       },
       child: Column(
@@ -179,7 +180,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Icon(icon, color: Colors.white, size: 26),
           ),
           const SizedBox(height: 8),
-          Text(text, style: const TextStyle(color: AppColors.textPrimary, fontSize: 12)),
+          Text(text, style: TextStyle(color: context.sawaColors.text1, fontSize: 12)),
         ],
       ),
     );
@@ -350,31 +351,32 @@ class _ChatScreenState extends State<ChatScreen> {
     required Future<void> Function() onPrimaryTap,
   }) async {
     if (!mounted) return;
+    final colors = context.sawaColors;
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.bgCard,
+        backgroundColor: colors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           title,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: colors.text1,
             fontWeight: FontWeight.w700,
           ),
         ),
         content: Text(
           message,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            color: colors.text2,
             height: 1.4,
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: AppColors.textHint),
+              style: TextStyle(color: colors.text3),
             ),
           ),
           ElevatedButton(
@@ -397,24 +399,25 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (!hasPermission) {
         if (!mounted) return;
+        final colors = context.sawaColors;
         await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: AppColors.bgCard,
-            title: const Text(
+            backgroundColor: colors.card,
+            title: Text(
               'Contacts Permission Needed',
-              style: TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: colors.text1),
             ),
-            content: const Text(
+            content: Text(
               'Please allow contacts access to share a contact card.',
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: colors.text2),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
+                child: Text(
                   'Cancel',
-                  style: TextStyle(color: AppColors.textHint),
+                  style: TextStyle(color: colors.text3),
                 ),
               ),
               ElevatedButton(
@@ -544,10 +547,12 @@ class _ChatScreenState extends State<ChatScreen> {
       debugPrint('Error stopping recording: $e');
     }
   }
+
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: colors.background,
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -559,11 +564,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final colors = context.sawaColors;
     return AppBar(
-      backgroundColor: AppColors.bgCard,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Row(
@@ -590,8 +595,8 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Text(
                   _otherUserName.isNotEmpty ? _otherUserName : 'Loading...',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
+                  style: TextStyle(
+                    color: colors.text1,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -607,12 +612,10 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
       actions: [
-        // Voice call button (placeholder for Phase 9)
         IconButton(
           icon: const Icon(Icons.call_outlined, color: AppColors.accent),
           onPressed: () {},
         ),
-        // Video call button (placeholder for Phase 10)
         IconButton(
           icon: const Icon(Icons.videocam_outlined, color: AppColors.accent),
           onPressed: () {},
@@ -622,11 +625,12 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildSubtitle() {
+    final colors = context.sawaColors;
     if (_showAbout && _otherUserAbout.isNotEmpty) {
       return Text(
         _otherUserAbout,
         key: const ValueKey('about'),
-        style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.8), fontSize: 12),
+        style: TextStyle(color: colors.text2.withValues(alpha: 0.8), fontSize: 12),
         overflow: TextOverflow.ellipsis,
       );
     }
@@ -644,7 +648,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return Text(
         'Last seen ${_formatLastSeen(_otherUserLastSeen!)}',
         key: const ValueKey('last_seen'),
-        style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.8), fontSize: 12),
+        style: TextStyle(color: colors.text2.withValues(alpha: 0.8), fontSize: 12),
         overflow: TextOverflow.ellipsis,
       );
     }
@@ -668,6 +672,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageList() {
+    final colors = context.sawaColors;
     return BlocBuilder<MessageCubit, MessageState>(
       bloc: _messageCubit,
       builder: (context, state) {
@@ -678,12 +683,12 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           loaded: (messages, localMessages, uploadProgress) {
             final allMessages = [...messages, ...localMessages];
-            // Sort by timestamp if necessary, but since they are at the end, they should naturally be at the bottom
+            // Sort newest first for reverse list
             allMessages.sort((a, b) {
               if (a.timestamp == null && b.timestamp == null) return 0;
-              if (a.timestamp == null) return 1; // Put nulls at the end
-              if (b.timestamp == null) return -1;
-              return a.timestamp!.compareTo(b.timestamp!);
+              if (a.timestamp == null) return -1; // Local/unsent messages at the bottom
+              if (b.timestamp == null) return 1;
+              return b.timestamp!.compareTo(a.timestamp!);
             });
 
             if (allMessages.isEmpty) {
@@ -694,30 +699,22 @@ class _ChatScreenState extends State<ChatScreen> {
                     Icon(Icons.chat_bubble_outline_rounded,
                         size: 64, color: AppColors.primary.withValues(alpha: 0.3)),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Start the conversation 💬',
-                      style: TextStyle(color: AppColors.textHint, fontSize: 16),
+                      style: TextStyle(color: colors.text3, fontSize: 16),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
+                    Text(
                       'ابدأ المحادثة',
-                      style: TextStyle(color: AppColors.textHint, fontSize: 14),
+                      style: TextStyle(color: colors.text3, fontSize: 14),
                     ),
                   ],
                 ),
               );
             }
 
-            // Auto-scroll to bottom when new messages arrive
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_scrollController.hasClients) {
-                _scrollController.jumpTo(
-                  _scrollController.position.maxScrollExtent,
-                );
-              }
-            });
-
             return ListView.builder(
+              reverse: true, // New messages appear at the bottom (index 0)
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(vertical: 12),
               itemCount: allMessages.length,
@@ -740,6 +737,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputBar() {
+    final colors = context.sawaColors;
     return Container(
       padding: EdgeInsets.only(
         left: 12,
@@ -747,9 +745,9 @@ class _ChatScreenState extends State<ChatScreen> {
         top: 8,
         bottom: MediaQuery.of(context).padding.bottom + 8,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.bgCard,
-        border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
+      decoration: BoxDecoration(
+        color: colors.card,
+        border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -758,7 +756,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ? Container(
                     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
-                      color: AppColors.bgInput,
+                      color: colors.input,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
                     ),
@@ -792,26 +790,26 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ),
                         const Spacer(),
-                        const Text('Tap mic to stop', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                        const Text('Tap mic to stop', style: TextStyle(color: AppColors.primaryLight, fontSize: 12)),
                       ],
                     ),
                   )
                 : TextField(
                     controller: _controller,
-                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                    style: TextStyle(color: colors.text1, fontSize: 15),
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: AppColors.bgInput,
+                      fillColor: colors.input,
                       hintText: 'Type a message...',
                       hintStyle: TextStyle(
-                        color: AppColors.textHint.withValues(alpha: 0.6),
+                        color: colors.text3.withValues(alpha: 0.6),
                         fontSize: 15,
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.attach_file, color: AppColors.textSecondary),
+                        icon: Icon(Icons.attach_file, color: colors.text2),
                         onPressed: _showAttachmentMenu,
                       ),
                       border: OutlineInputBorder(
@@ -820,7 +818,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(color: AppColors.divider, width: 1.0),
+                        borderSide: BorderSide(color: colors.divider, width: 1.0),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),

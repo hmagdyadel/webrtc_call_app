@@ -5,6 +5,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app/app.dart';
 import 'core/di/injection.dart';
+import 'core/theme/theme_cubit.dart';
 import 'core/utils/onboarding_store.dart';
 import 'core/services/push_notification_service.dart';
 import 'firebase_options.dart';
@@ -16,6 +17,10 @@ void main() async {
     appVerificationDisabledForTesting: true,
   );
   await configureDependencies();
+  
+  // Load user's saved theme preference before showing any UI
+  await getIt<ThemeCubit>().loadSavedTheme();
+
   final prefs = await SharedPreferences.getInstance();
   if (!getIt.isRegistered<OnboardingStore>()) {
     getIt.registerSingleton<OnboardingStore>(OnboardingStore(prefs));

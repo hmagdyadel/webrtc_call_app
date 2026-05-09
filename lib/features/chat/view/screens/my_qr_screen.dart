@@ -10,6 +10,7 @@ class MyQRScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
     final authState = context.read<AuthCubit>().state;
     String? currentUserId;
     String? currentUserName;
@@ -26,14 +27,12 @@ class MyQRScreen extends StatelessWidget {
 
     if (currentUserId == null) {
       return Scaffold(
-        backgroundColor: AppColors.bgDark,
+        backgroundColor: colors.background,
         appBar: AppBar(
-          backgroundColor: AppColors.bgDark,
-          elevation: 0,
-          leading: const BackButton(color: AppColors.textPrimary),
+          title: const Text('User not found'),
         ),
-        body: const Center(
-          child: Text('User not found', style: TextStyle(color: AppColors.textHint)),
+        body: Center(
+          child: Text('User not found', style: TextStyle(color: colors.text3)),
         ),
       );
     }
@@ -41,13 +40,10 @@ class MyQRScreen extends StatelessWidget {
     final displayName = currentUserName ?? currentUserPhone ?? 'User';
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        title: const Text('My QR Code', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        title: const Text('My QR Code'),
         centerTitle: true,
-        leading: const BackButton(color: AppColors.textPrimary),
       ),
       body: Center(
         child: Column(
@@ -86,16 +82,16 @@ class MyQRScreen extends StatelessWidget {
                   Text(
                     displayName,
                     style: const TextStyle(
-                      color: AppColors.bgDark,
+                      color: AppColors.darkBg, // Always dark on white card
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   if (currentUserName != null && currentUserPhone != null) ...[
                     const SizedBox(height: 4),
-                    Text(
-                      currentUserPhone!,
-                      style: const TextStyle(
+                    const Text(
+                      'Scan to connect',
+                      style: TextStyle(
                         color: Colors.grey,
                         fontSize: 14,
                       ),
@@ -105,11 +101,11 @@ class MyQRScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 40),
-            const Text(
+            Text(
               'Scan this code to start a chat\nامسح هذا الرمز لبدء محادثة',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.textHint,
+                color: colors.text3,
                 fontSize: 16,
                 height: 1.5,
               ),

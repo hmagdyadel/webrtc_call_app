@@ -4,6 +4,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import '../core/di/injection.dart';
 import '../core/utils/onboarding_store.dart';
 import '../core/services/presence_service.dart';
+import '../core/theme/theme_cubit.dart';
 import '../features/auth/viewmodel/auth_cubit.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
@@ -13,10 +14,17 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<AuthCubit>(
-      create: (_) => getIt<AuthCubit>()..checkAuthStatus(),
-      child: Builder(
-        builder: (context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>(
+          create: (_) => getIt<AuthCubit>()..checkAuthStatus(),
+        ),
+        BlocProvider<ThemeCubit>(
+          create: (_) => getIt<ThemeCubit>(),
+        ),
+      ],
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
           final authCubit = context.read<AuthCubit>();
           final onboardingStore = getIt<OnboardingStore>();
           
@@ -28,7 +36,15 @@ class App extends StatelessWidget {
           return MaterialApp.router(
             title: 'Sawa',
             debugShowCheckedModeBanner: false,
-            theme: sawaTheme(),
+
+            // Both themes registered
+            theme: sawaLightTheme(),
+            darkTheme: sawaDarkTheme(),
+
+            // System = device default on first install
+            // Dark/Light = user's saved override
+            themeMode: themeMode,
+
             builder: EasyLoading.init(),
             routerConfig: router,
           );

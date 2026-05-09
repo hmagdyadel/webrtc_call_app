@@ -1,279 +1,314 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/theme/theme_cubit.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../auth/viewmodel/auth_cubit.dart';
 import '../../../auth/viewmodel/auth_state.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
+  Widget build(BuildContext context) {
+    final colors = context.sawaColors;
+    final authState = context.watch<AuthCubit>().state;
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  final _nameController = TextEditingController();
-  final _aboutController = TextEditingController();
-  String _birthdate = '';
-  File? _imageFile;
-  bool _isLoading = false;
+    String name = 'اسمك هنا';
+    String phone = '';
+    String? avatarUrl;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadCurrentProfile();
-  }
-
-  void _loadCurrentProfile() {
-    final authState = context.read<AuthCubit>().state;
     authState.maybeWhen(
       authenticated: (user) {
-        _nameController.text = user.name;
-        _aboutController.text = user.about;
-        _birthdate = user.birthdate;
+        name = user.name.isNotEmpty ? user.name : 'بدون اسم';
+        phone = user.phone;
+        avatarUrl = user.avatarUrl;
       },
-      orElse: () {},
-    );
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _aboutController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  Future<void> _selectBirthdate() async {
-    DateTime initialDate = DateTime.now();
-    if (_birthdate.isNotEmpty) {
-      try {
-        initialDate = DateFormat('yyyy-MM-dd').parse(_birthdate);
-      } catch (_) {}
-    }
-
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              surface: AppColors.bgSurface,
-              onSurface: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      setState(() {
-        _birthdate = DateFormat('yyyy-MM-dd').format(picked);
-      });
-    }
-  }
-
-  Future<void> _saveProfile() async {
-    setState(() => _isLoading = true);
-
-    try {
-      await context.read<AuthCubit>().updateProfile(
-            name: _nameController.text.trim(),
-            birthdate: _birthdate,
-            about: _aboutController.text.trim(),
-            imageFile: _imageFile,
-          );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update profile: $e')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final authState = context.watch<AuthCubit>().state;
-    String? currentAvatarUrl;
-
-    authState.maybeWhen(
-      authenticated: (user) => currentAvatarUrl = user.avatarUrl,
       orElse: () {},
     );
 
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        title: const Text('My Profile', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        leading: const BackButton(color: Colors.white),
+        title: const Text('الملف الشخصي'),
+        centerTitle: false,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundColor: AppColors.bgSurface,
-                          backgroundImage: _imageFile != null
-                              ? FileImage(_imageFile!) as ImageProvider
-                              : (currentAvatarUrl != null && currentAvatarUrl!.isNotEmpty)
-                                  ? NetworkImage(currentAvatarUrl!)
-                                  : null,
-                          child: (_imageFile == null && (currentAvatarUrl == null || currentAvatarUrl!.isEmpty))
-                              ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                              : null,
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  _buildTextField(
-                    controller: _nameController,
-                    label: 'Name',
-                    icon: Icons.person_outline,
-                  ),
-                  const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: _selectBirthdate,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.bgSurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.cake_outlined, color: Colors.grey),
-                          const SizedBox(width: 16),
-                          Text(
-                            _birthdate.isNotEmpty ? _birthdate : 'Select Birthdate',
-                            style: TextStyle(
-                              color: _birthdate.isNotEmpty ? Colors.white : Colors.grey,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _aboutController,
-                    label: 'About',
-                    icon: Icons.info_outline,
-                    hint: 'e.g., What\'s brewing this morning?',
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 40),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Save Changes',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
+      body: ListView(
+        children: [
+          // ── User info section ──────────────────────────
+          Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: colors.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colors.divider,
+                width: 0.5,
               ),
             ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: AppColors.primary,
+                  backgroundImage: (avatarUrl != null && avatarUrl!.isNotEmpty)
+                      ? NetworkImage(avatarUrl!)
+                      : null,
+                  child: (avatarUrl == null || avatarUrl!.isEmpty)
+                      ? Text(
+                          name.isNotEmpty ? name[0] : 'أ',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: TextStyle(
+                          color: colors.text1,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        phone,
+                        style: TextStyle(
+                          color: colors.text2,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.edit_outlined,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+
+          // ── Appearance section ─────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+            child: Text(
+              'المظهر',
+              style: TextStyle(
+                color: colors.text3,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: colors.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colors.divider,
+                width: 0.5,
+              ),
+            ),
+            child: BlocBuilder<ThemeCubit, ThemeMode>(
+              builder: (context, themeMode) {
+                return Column(
+                  children: [
+                    _ThemeOption(
+                      icon: Icons.brightness_auto_outlined,
+                      label: 'حسب الجهاز',
+                      sublabel: 'System default',
+                      isSelected: themeMode == ThemeMode.system,
+                      onTap: () => getIt<ThemeCubit>().setSystem(),
+                      showDivider: true,
+                    ),
+                    _ThemeOption(
+                      icon: Icons.dark_mode_outlined,
+                      label: 'الوضع الليلي',
+                      sublabel: 'Dark mode',
+                      isSelected: themeMode == ThemeMode.dark,
+                      onTap: () => getIt<ThemeCubit>().setDark(),
+                      showDivider: true,
+                    ),
+                    _ThemeOption(
+                      icon: Icons.light_mode_outlined,
+                      label: 'الوضع النهاري',
+                      sublabel: 'Light mode',
+                      isSelected: themeMode == ThemeMode.light,
+                      onTap: () => getIt<ThemeCubit>().setLight(),
+                      showDivider: false,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+
+          // ── QR Code ───────────────────────────────────
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+            child: Text(
+              'الاتصال',
+              style: TextStyle(
+                color: colors.text3,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: colors.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colors.divider,
+                width: 0.5,
+              ),
+            ),
+            child: ListTile(
+              leading: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.qr_code, color: AppColors.primary, size: 20),
+              ),
+              title: const Text('رمز QR الخاص بي'),
+              subtitle: const Text('شارك رمزك لبدء محادثة فورية'),
+              trailing: const Icon(Icons.chevron_right, size: 20),
+              onTap: () {},
+            ),
+          ),
+
+          // ── Sign out ──────────────────────────────────
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListTile(
+              tileColor: colors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: colors.divider,
+                  width: 0.5,
+                ),
+              ),
+              leading: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.missed.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.logout, color: AppColors.missed, size: 20),
+              ),
+              title: const Text(
+                'تسجيل الخروج',
+                style: TextStyle(color: AppColors.missed),
+              ),
+              onTap: () {
+                context.read<AuthCubit>().signOut();
+              },
+            ),
+          ),
+
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    String? hint,
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        labelStyle: const TextStyle(color: Colors.grey),
-        hintStyle: TextStyle(color: Colors.grey.withValues(alpha: 0.5)),
-        prefixIcon: Icon(icon, color: Colors.grey),
-        filled: true,
-        fillColor: AppColors.bgSurface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String sublabel;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final bool showDivider;
+
+  const _ThemeOption({
+    required this.icon,
+    required this.label,
+    required this.sublabel,
+    required this.isSelected,
+    required this.onTap,
+    required this.showDivider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.sawaColors;
+
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          leading: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.primary.withValues(alpha: 0.15)
+                  : colors.surface,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: isSelected
+                  ? AppColors.primary
+                  : colors.text2,
+            ),
+          ),
+          title: Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              color: isSelected ? AppColors.primary : colors.text1,
+            ),
+          ),
+          subtitle: Text(
+            sublabel,
+            style: TextStyle(
+              fontSize: 12,
+              color: colors.text3,
+            ),
+          ),
+          trailing: isSelected
+              ? const Icon(Icons.check_circle, color: AppColors.primary, size: 22)
+              : Icon(
+                  Icons.circle_outlined,
+                  size: 22,
+                  color: colors.text3,
+                ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary),
-        ),
-      ),
+        if (showDivider)
+          Divider(
+            height: 0.5,
+            indent: 64,
+            thickness: 0.5,
+            color: colors.divider,
+          ),
+      ],
     );
   }
 }

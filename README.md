@@ -12,62 +12,48 @@
   <img src="https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart" alt="Dart"/>
   <img src="https://img.shields.io/badge/Firebase-Firestore%20%7C%20Auth%20%7C%20FCM-FFCA28?logo=firebase" alt="Firebase"/>
   <img src="https://img.shields.io/badge/WebRTC-Voice%20%26%20Video-333333?logo=webrtc" alt="WebRTC"/>
-  <img src="https://img.shields.io/badge/License-Private-red" alt="License"/>
+  <img src="https://img.shields.io/badge/Theme-Dynamic%20V2-5B4FD4" alt="Theme"/>
 </p>
 
 ---
 
 ## 📱 About
 
-**Sawa (سوا)** is a full-featured Arabic-first calling and chat app, similar to Botim and WhatsApp. Built with Flutter, Firebase, and WebRTC for real-time communication.
+**Sawa (سوا)** is a full-featured Arabic-first calling and chat app, built with a premium "Business" aesthetic. Inspired by Botim and WhatsApp, it uses a professional Flutter architecture to deliver high-performance real-time communication.
 
 ### Key Features
-- 🔐 **Phone OTP Authentication** — Firebase Auth with Egypt (+20) default
-- 💬 **Real-time Chat** — Firestore-powered instant messaging
-- 📞 **Voice Calls** — WebRTC peer-to-peer with Socket.IO signaling
-- 📹 **Video Calls** — Camera support with flip & toggle
-- 📲 **Push Notifications** — FCM for call alerts & messages
-- 🔗 **QR Code Discovery** — Scan to add contacts instantly
-- 📱 **Native Call UI** — CallKit (iOS) & ConnectionService (Android)
+- 🔐 **Phone OTP Authentication** — Firebase Auth with Egypt (+20) default.
+- 🎨 **Unified Dynamic Theme System** — Professional `ThemeExtension` architecture supporting Dark and Light modes.
+- 💬 **Multimedia Chat** — Text, Images, Videos, Audio (with waveforms), Location, and Native Contacts.
+- 🎤 **Advanced Voice Messaging** — Real-time waveform recording, speed control (1x-2x), and seeking.
+- 📞 **Voice & Video Calls** — WebRTC-powered high-quality calling (In Progress).
+- 🔗 **QR Code Discovery** — Scan to add contacts instantly.
+- 🗺️ **Location Sharing** — Coordinate-based sharing with native map deep linking.
 
 ---
 
-## 🎨 Brand Identity
+## 🎨 Design System
 
-| Element | Value |
-|---------|-------|
-| Primary | `#5B4FD4` — Deep Purple |
-| Accent | `#00C8A0` — Teal |
-| Light Purple | `#7B6FE8` |
-| Dark Purple | `#3D33A8` |
-| Background | `#0D0D1E` |
-| Surface | `#22223A` |
-| Font | Plus Jakarta Sans |
+Sawa uses a semantic color system that adapts to the current theme mode.
+
+| Token | Light Mode (Business) | Dark Mode (Premium) |
+|-------|------------------------|----------------------|
+| Primary | `#5B4FD4` (Purple) | `#5B4FD4` (Purple) |
+| Accent | `#00C8A0` (Teal) | `#00C8A0` (Teal) |
+| AppBar | `#5B4FD4` (Purple) | `#1A1640` (Dark) |
+| Nav Bar | `#F5F4FF` (Lavender) | `#0D0D1E` (Black) |
+| Font | Plus Jakarta Sans | Plus Jakarta Sans |
 
 ---
 
 ## 🏗 Architecture
 
-**MVVM + Clean Architecture** with strict layer separation:
+The project follows **Clean Architecture** principles with a focus on modularity and testability.
 
-```
-View (Widgets) → ViewModel (Cubit) → Repository → Remote Source → Firebase/API
-```
-
-### Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| State Management | `flutter_bloc` (Cubit) |
-| Models | `freezed` + `json_serializable` |
-| Dependency Injection | `get_it` + `injectable` |
-| Navigation | `go_router` |
-| Networking | `dio` + `retrofit` |
-| Real-time DB | Cloud Firestore |
-| Auth | Firebase Phone Auth |
-| Signaling | Socket.IO (Node.js server) |
-| Media | `flutter_webrtc` |
-| Notifications | Firebase Cloud Messaging |
+- **State Management**: `flutter_bloc` (Cubit) with strict UI/Logic separation.
+- **Theme Management**: Professional `ThemeExtension` (`SawaColors`) for type-safe custom color tokens.
+- **Dependency Injection**: `get_it` + `injectable` for robust service discovery.
+- **Routing**: `go_router` with centralized auth-guarded path management.
 
 ---
 
@@ -77,110 +63,49 @@ View (Widgets) → ViewModel (Cubit) → Repository → Remote Source → Fireba
 lib/
 ├── main.dart
 ├── app/
-│   ├── app.dart                         # MaterialApp.router + EasyLoading
-│   ├── router/app_router.dart           # GoRouter with auth guards
-│   └── theme/
-│       ├── app_colors.dart              # Brand color constants
-│       └── app_theme.dart               # sawaTheme() with Plus Jakarta Sans
+│   ├── app.dart                         # MaterialApp configuration
+│   ├── theme/
+│   │   ├── app_colors.dart              # SawaColors ThemeExtension
+│   │   └── app_theme.dart               # Theme factory (Light/Dark)
+│   └── router/                          # Path-based routing
 ├── core/
-│   ├── di/injection.dart                # get_it + injectable setup
-│   ├── network/dio_client.dart          # Dio + interceptors
-│   ├── webrtc/webrtc_service.dart       # RTCPeerConnection wrapper
-│   ├── socket/signaling_service.dart    # Socket.IO client
-│   └── utils/                           # Constants, extensions, formatters
-├── features/
-│   ├── splash/                          # Lottie splash + routing
-│   ├── onboarding/                      # 3-page bilingual onboarding
-│   ├── auth/                            # Phone OTP login (complete)
-│   ├── chat/                            # Chat list + messaging
-│   ├── call/                            # Voice & video calls
-│   ├── contacts/                        # Contact sync & discovery
-│   └── profile/                         # User profile & QR code
-
-signaling_server/
-├── server.js                            # Node.js + Express + Socket.IO
-└── src/handlers/                        # Call & room event handlers
+│   ├── di/                              # Dependency Injection setup
+│   └── utils/                           # Shared helpers & extensions
+└── features/
+    ├── chat/                            # Messaging, Media, & Location
+    ├── auth/                            # Firebase Phone OTP flow
+    ├── profile/                         # Settings & Dynamic Themes
+    └── splash/                          # Theme-aware entry screen
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Flutter SDK `^3.11.1`
-- Node.js `>=18` (for signaling server)
-- Firebase project configured
-- Physical device recommended (WebRTC requires real hardware)
-
-### Setup
-
 ```bash
-# 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/webrtc_call_app.git
-cd webrtc_call_app
-
-# 2. Install Flutter dependencies
+# 1. Install dependencies
 flutter pub get
 
-# 3. Generate code (Freezed, JSON, Injectable)
+# 2. Generate code (Freezed, JSON, Injectable)
 dart run build_runner build --delete-conflicting-outputs
 
-# 4. Start signaling server (separate terminal)
-cd ../signaling_server
-npm install
-node server.js
-
-# 5. Run the app
+# 3. Run the app
 flutter run
 ```
 
-### Environment
-
-| Item | Value |
-|------|-------|
-| Firebase Project | `webrtc-call-app-5a0db` |
-| Android Package | `com.sawa.app` |
-| iOS Bundle ID | `com.sawa.app` |
-| Signaling Server | `http://<MAC_IP>:3000` |
-| Min Android SDK | 23 |
-| Min iOS Version | 14.0 |
-
 ---
 
-## 📋 Development Roadmap
+## 📋 Roadmap
 
-- [x] **Phase 1–4** — Infrastructure, Firebase, Auth, Home & Chat List
-- [x] **Phase 5** — Bug Fixes
-- [x] **Phase 6** — Navigation, Branding, Theme, Splash, Onboarding, App Icon
-- [x] **Phase 7** — Chat Screen & Real Messaging
-- [x] **Phase 8** — QR Code Contact Discovery
-- [ ] **Phase 9** — WebRTC Voice Calls
-- [ ] **Phase 10** — Video Calls
-- [ ] **Phase 11** — Push Notifications (FCM)
-- [ ] **Phase 12** — Native Call UI (CallKit / ConnectionService)
-- [x] **Phase 13** — Profile & Settings
-- [x] **Phase 14** — Last Seen & Status Toggle
-- [x] **Phase 17** — Multimedia Chat (Audio 2.0, Location 2.0, Native Contacts)
-- [ ] **Phase 15** — Contacts Sync
-- [ ] **Phase 16** — Production Hardening
+- [x] **Infrastructure & Auth** — Firebase integration & Phone OTP.
+- [x] **Core Messaging** — Real-time text & empty states.
+- [x] **QR Discovery** — Personal QR cards & scanning.
+- [x] **Multimedia Chat** — Audio 2.0, Location 2.0, Files, & Native Contacts.
+- [x] **Unified Theme System** — Professional Light/Dark mode migration.
+- [ ] **Voice & Video Calls** — WebRTC implementation.
+- [ ] **Push Notifications** — Firebase Cloud Messaging integration.
 
-See [PROGRESS.md](PROGRESS.md) for detailed session logs and current state.
-
----
-
-## 🧪 Test Accounts
-
-| Phone | OTP Code |
-|-------|----------|
-| +20 1125516481 | 123456 |
-
-> Add more test numbers in Firebase Console → Authentication → Phone
-
----
-
-## 📄 License
-
-Private — All rights reserved.
+See [PROGRESS.md](PROGRESS.md) for detailed session logs.
 
 ---
 

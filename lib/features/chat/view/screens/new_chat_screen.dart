@@ -52,53 +52,50 @@ class _NewChatScreenState extends State<NewChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: const Text('New Chat',
-            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        title: const Text('New Chat'),
       ),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             )
           : _users.isEmpty
-          ? const Center(
-          child: Text('No other users found',
-              style: TextStyle(color: AppColors.textHint)))
+          ? Center(
+              child: Text('No other users found',
+                  style: TextStyle(color: colors.text3)))
           : ListView.builder(
-        itemCount: _users.length,
-        itemBuilder: (context, index) {
-          final user = _users[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: AppColors.primary,
-              backgroundImage: user.avatarUrl.isNotEmpty ? NetworkImage(user.avatarUrl) : null,
-              child: user.avatarUrl.isEmpty
-                  ? (user.name.isNotEmpty
-                      ? Text(
-                          user.name[0].toUpperCase(),
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                        )
-                      : const Icon(Icons.person, color: Colors.white, size: 24))
-                  : null,
+              itemCount: _users.length,
+              itemBuilder: (context, index) {
+                final user = _users[index];
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary,
+                    backgroundImage: user.avatarUrl.isNotEmpty ? NetworkImage(user.avatarUrl) : null,
+                    child: user.avatarUrl.isEmpty
+                        ? (user.name.isNotEmpty
+                            ? Text(
+                                user.name[0].toUpperCase(),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                              )
+                            : const Icon(Icons.person, color: Colors.white, size: 24))
+                        : null,
+                  ),
+                  title: Text(
+                    user.name.isEmpty ? user.phone : user.name,
+                    style: TextStyle(color: colors.text1),
+                  ),
+                  subtitle: Text(
+                    user.phone,
+                    style: TextStyle(color: colors.text2),
+                  ),
+                  onTap: () => _startChat(context, user),
+                );
+              },
             ),
-            title: Text(
-              user.name.isEmpty ? user.phone : user.name,
-              style: const TextStyle(color: AppColors.textPrimary),
-            ),
-            subtitle: user.name.isEmpty
-                ? null
-                : Text(user.phone,
-                style: const TextStyle(color: AppColors.textHint)),
-            onTap: () => _startChat(context, user),
-          );
-        },
-      ),
     );
   }
 
@@ -113,8 +110,6 @@ class _NewChatScreenState extends State<NewChatScreen> {
     await chatSource.createOrGetChat(currentUserId!, otherUser.id);
 
     if (!context.mounted) return;
-    // Replace NewChatScreen with ChatScreen in the stack
-    // Stack becomes: Home → Chat (back button returns to Home)
     context.pushReplacement(
       '/home/chat/$chatId',
       extra: {'otherUserId': otherUser.id},

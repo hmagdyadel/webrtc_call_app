@@ -43,7 +43,7 @@ class MessageBubble extends StatelessWidget {
             ? const EdgeInsets.all(4)
             : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isSent ? AppColors.primary : AppColors.bgSurface,
+          color: isSent ? AppColors.primary : context.sawaColors.surface,
           border: isSent
               ? null
               : Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1),
@@ -67,7 +67,7 @@ class MessageBubble extends StatelessWidget {
                   style: TextStyle(
                     color: isSent
                         ? Colors.white.withValues(alpha: 0.65)
-                        : AppColors.textHint,
+                        : context.sawaColors.text3,
                     fontSize: 11,
                   ),
                 ),
@@ -115,7 +115,7 @@ class MessageBubble extends StatelessWidget {
               children: [
                 Text(
                   _formatTime(message.timestamp),
-                  style: const TextStyle(color: AppColors.textHint, fontSize: 11),
+                  style: TextStyle(color: context.sawaColors.text3, fontSize: 11),
                 ),
                 if (isSent) ...[
                   const SizedBox(width: 4),
@@ -130,7 +130,8 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildMessageContent(BuildContext context) {
-    final textColor = isSent ? Colors.white : AppColors.textPrimary;
+    final colors = context.sawaColors;
+    final textColor = isSent ? Colors.white : colors.text1;
     final isUploading = message.status == 'uploading';
     final localPath = message.metadata?['localPath'] as String?;
 
@@ -323,7 +324,7 @@ class MessageBubble extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isSent ? Colors.white.withValues(alpha: 0.12) : AppColors.bgDark,
+                  color: isSent ? Colors.white.withValues(alpha: 0.12) : context.sawaColors.background,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(

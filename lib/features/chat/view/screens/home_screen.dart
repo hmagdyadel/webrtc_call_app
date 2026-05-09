@@ -21,8 +21,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
-  int _currentIndex = 0; // Chats tab default
+  int _currentIndex = 0; 
   late final ChatCubit _chatCubit;
 
   @override
@@ -47,10 +46,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
+    
     return BlocProvider.value(
       value: _chatCubit,
       child: Scaffold(
-        backgroundColor: AppColors.bgDark,
+        backgroundColor: colors.background,
         body: _screens[_currentIndex],
         bottomNavigationBar: Theme(
           data: Theme.of(context).copyWith(
@@ -60,13 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             onTap: (index) => setState(() => _currentIndex = index),
-            backgroundColor: AppColors.navBackground,
-            selectedItemColor: AppColors.navSelected,
-            unselectedItemColor: AppColors.navUnselected,
-
             selectedFontSize: 11,
             unselectedFontSize: 11,
-            type: BottomNavigationBarType.fixed,
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.chat_bubble_outline),
@@ -107,28 +103,20 @@ class _ChatsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
+    
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        title: const Text('Chats',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold)),
+        title: const Text('Chats'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
-            onPressed: () {
-              context.push(AppRoutePaths.qrScanner);
-            },
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () => context.push(AppRoutePaths.qrScanner),
           ),
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () async {
-              await context.push(AppRoutePaths.newChat);
-            },
+            icon: const Icon(Icons.add),
+            onPressed: () => context.push(AppRoutePaths.newChat),
           ),
         ],
       ),
@@ -140,23 +128,19 @@ class _ChatsTab extends StatelessWidget {
               child: CircularProgressIndicator(color: AppColors.primary),
             ),
             loaded: (chats) => chats.isEmpty
-                ? const Center(
-                child: Text('No chats yet',
-                    style: TextStyle(color: AppColors.textHint)))
+                ? Center(
+                    child: Text('No chats yet',
+                        style: TextStyle(color: colors.text3)))
                 : ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (context, index) {
-                final chat = chats[index];
-                final otherId = chat.members
-                    .firstWhere((m) => m != userId);
-                return _ChatTile(
-                    chat: chat,
-                    currentUserId: userId,
-                    otherId: otherId);
-              },
-            ),
-            error: (msg) =>
-                Center(child: Text(msg, style: const TextStyle(color: AppColors.missed))),
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) {
+                      final chat = chats[index];
+                      final otherId = chat.members.firstWhere((m) => m != userId);
+                      return _ChatTile(chat: chat, currentUserId: userId, otherId: otherId);
+                    },
+                  ),
+            error: (msg) => Center(
+                child: Text(msg, style: const TextStyle(color: AppColors.missed))),
           );
         },
       ),
@@ -177,6 +161,8 @@ class _ChatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
+    
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('users').doc(otherId).snapshots(),
       builder: (context, snapshot) {
@@ -192,8 +178,6 @@ class _ChatTile extends StatelessWidget {
           } catch (e) {
             displayName = 'User';
           }
-        } else if (snapshot.hasError || (!snapshot.hasData && snapshot.connectionState == ConnectionState.done)) {
-            displayName = 'User';
         }
 
         return ListTile(
@@ -211,45 +195,49 @@ class _ChatTile extends StatelessWidget {
           ),
           title: Text(
             displayName,
-            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: colors.text1,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-      subtitle: Text(
-        _buildChatPreview(chat),
-        style: const TextStyle(color: Colors.grey, fontSize: 13),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (chat.lastMessageTime != null)
-            Text(
-              _formatTime(chat.lastMessageTime!),
-              style: const TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          if (chat.unreadCount > 0 && chat.lastMessageSenderId != currentUserId)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.accent,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                chat.unreadCount.toString(),
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-              ),
-            ),
-        ],
-      ),
-      onTap: () => context.push(
-        '/home/chat/${chat.id}',
-        extra: {'otherUserId': otherId},
-      ),
-    );
+          subtitle: Text(
+            _buildChatPreview(chat),
+            style: TextStyle(color: colors.text2, fontSize: 13),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (chat.lastMessageTime != null)
+                Text(
+                  _formatTime(chat.lastMessageTime!),
+                  style: TextStyle(color: colors.text3, fontSize: 12),
+                ),
+              if (chat.unreadCount > 0 && chat.lastMessageSenderId != currentUserId)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(
+                    color: AppColors.accent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    chat.unreadCount.toString(),
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+            ],
+          ),
+          onTap: () => context.push(
+            '/home/chat/${chat.id}',
+            extra: {'otherUserId': otherId},
+          ),
+        );
       },
     );
   }
@@ -265,94 +253,63 @@ class _ChatTile extends StatelessWidget {
 
   String _buildChatPreview(ChatModel chat) {
     if (chat.lastMessage.isNotEmpty) return chat.lastMessage;
-    // Backward compatibility for older docs where audio/media preview text
-    // was not populated in chat metadata.
     if (chat.lastMessageSenderId.isNotEmpty) return '🎤 Voice message';
     return 'No messages yet';
   }
 }
 
-// ── Calls Tab ──
 class _CallsTab extends StatelessWidget {
   const _CallsTab();
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.sawaColors;
+    return Scaffold(
+      backgroundColor: colors.background,
+      appBar: AppBar(title: const Text('Calls')),
+      body: Center(child: Text('No calls yet', style: TextStyle(color: colors.text3))),
+    );
+  }
+}
 
+class _ExploreTab extends StatelessWidget {
+  const _ExploreTab();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bgDark,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgDark,
-        elevation: 0,
-        title: const Text(
-          'Calls',
-          style: TextStyle(color: Colors.white, fontSize: 20,
-              fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: const Center(
-        child: Text('No calls yet', style: TextStyle(color: Colors.grey)),
-      ),
+      backgroundColor: context.sawaColors.background,
+      body: Center(child: Text('Explore', style: TextStyle(color: context.sawaColors.text3))),
     );
   }
 }
 
-// ── Explore Tab ──
-class _ExploreTab extends StatelessWidget {
-  const _ExploreTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.bgDark,
-      body: Center(
-        child: Text('Explore', style: TextStyle(color: Colors.grey)),
-      ),
-    );
-  }
-}
-
-// ── Contacts Tab ──
 class _ContactsTab extends StatelessWidget {
   const _ContactsTab();
-
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: AppColors.bgDark,
-      body: Center(
-        child: Text('Contacts', style: TextStyle(color: Colors.grey)),
-      ),
+    return Scaffold(
+      backgroundColor: context.sawaColors.background,
+      body: Center(child: Text('Contacts', style: TextStyle(color: context.sawaColors.text3))),
     );
   }
 }
 
-// ── Me Tab ──
 class _MeTab extends StatelessWidget {
   const _MeTab();
-
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         String displayName = 'My Profile';
         String? avatarUrl;
-
-        state.whenOrNull(
-          authenticated: (user) {
-            displayName = user.name.isNotEmpty ? user.name : 'User';
-            avatarUrl = user.avatarUrl.isNotEmpty ? user.avatarUrl : null;
-          },
-        );
+        state.whenOrNull(authenticated: (user) {
+          displayName = user.name.isNotEmpty ? user.name : 'User';
+          avatarUrl = user.avatarUrl.isNotEmpty ? user.avatarUrl : null;
+        });
 
         return Scaffold(
-          backgroundColor: AppColors.bgDark,
-          appBar: AppBar(
-            backgroundColor: AppColors.bgDark,
-            elevation: 0,
-            title: const Text('Me',
-                style: TextStyle(color: Colors.white, fontSize: 20,
-                    fontWeight: FontWeight.bold)),
-          ),
+          backgroundColor: colors.background,
+          appBar: AppBar(title: const Text('Me')),
           body: Column(
             children: [
               ListTile(
@@ -361,49 +318,45 @@ class _MeTab extends StatelessWidget {
                   backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
                   child: avatarUrl == null ? const Icon(Icons.person, color: Colors.white) : null,
                 ),
-                title: Text(displayName,
-                    style: const TextStyle(color: Colors.white)),
-                subtitle: const Text('Tap to edit profile', style: TextStyle(color: Colors.grey)),
-                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                title: Text(displayName, style: TextStyle(color: colors.text1)),
+                subtitle: Text('Tap to edit profile', style: TextStyle(color: colors.text2)),
+                trailing: Icon(Icons.chevron_right, color: colors.text3),
                 onTap: () => context.push(AppRoutePaths.profile),
               ),
               ListTile(
-                leading: const Icon(Icons.qr_code, color: Colors.white),
-            title: const Text('My QR Code',
-                style: TextStyle(color: Colors.white)),
-            onTap: () => context.push(AppRoutePaths.myQr),
+                leading: Icon(Icons.qr_code, color: colors.text1),
+                title: Text('My QR Code', style: TextStyle(color: colors.text1)),
+                onTap: () => context.push(AppRoutePaths.myQr),
+              ),
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+                onTap: () => _showSignOut(context),
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Sign Out',
-                style: TextStyle(color: Colors.red)),
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Sign Out'),
-                  content: const Text('Are you sure you want to sign out?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        context.read<AuthCubit>().signOut();
-                      },
-                      child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              );
+        );
+      },
+    );
+  }
+
+  void _showSignOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<AuthCubit>().signOut();
             },
+            child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
-    );
-      },
     );
   }
 }

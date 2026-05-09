@@ -6,6 +6,7 @@ import 'package:lottie/lottie.dart';
 import '../../../app/router/app_router.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/utils/onboarding_store.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../auth/viewmodel/auth_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../auth/viewmodel/auth_state.dart';
@@ -38,7 +39,6 @@ class _SplashScreenState extends State<SplashScreen>
     
     final authState = getIt<AuthCubit>().state;
     
-    // Don't route if we are still figuring out the auth state
     final isDetermined = authState.maybeWhen(
       initial: () => false,
       loading: () => false,
@@ -66,64 +66,65 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
     return BlocListener<AuthCubit, AuthState>(
       bloc: getIt<AuthCubit>(),
       listener: (context, state) {
         _routeNext();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0D0D1E),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
-            Lottie.asset(
-              'assets/animations/splash.json',
-              controller: _lottieController,
-              width: 180,
-              height: 180,
-              onLoaded: (composition) {
-                _lottieController
-                  ..duration = composition.duration
-                  ..forward();
-              },
-            ),
-            const SizedBox(height: 28),
-            const Text(
-              'سوا',
-              style: TextStyle(
-                color: Color(0xFF5B4FD4),
-                fontSize: 38,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2,
+        backgroundColor: colors.background,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(),
+              Lottie.asset(
+                'assets/animations/splash.json',
+                controller: _lottieController,
+                width: 180,
+                height: 180,
+                onLoaded: (composition) {
+                  _lottieController
+                    ..duration = composition.duration
+                    ..forward();
+                },
               ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'SAWA',
-              style: TextStyle(
-                color: Color(0xFF00C8A0),
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                letterSpacing: 8,
-              ),
-            ),
-            const Spacer(),
-            const Padding(
-              padding: EdgeInsets.only(bottom: 48),
-              child: Text(
-                'سوا دايماً متواصلين',
+              const SizedBox(height: 28),
+              const Text(
+                'سوا',
                 style: TextStyle(
-                  color: Color(0xFF6B6490),
-                  fontSize: 13,
+                  color: AppColors.primary,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 6),
+              const Text(
+                'SAWA',
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 8,
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 48),
+                child: Text(
+                  'سوا دايماً متواصلين',
+                  style: TextStyle(
+                    color: colors.text3,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 }
