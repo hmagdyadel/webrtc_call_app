@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UserModel {
 
- String get id; String get phone; String get name; String get avatarUrl; String get about; String get birthdate; bool get isOnline;@JsonKey(name: 'last_seen') DateTime? get lastSeen;@JsonKey(name: 'created_at') DateTime? get createdAt;
+ String get id; String get phone; String get name; String get avatarUrl; String get about; String get birthdate; bool get isOnline;@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? get lastSeen;@TimestampConverter()@JsonKey(name: 'created_at') DateTime? get createdAt;
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $UserModelCopyWith<$Res>  {
   factory $UserModelCopyWith(UserModel value, $Res Function(UserModel) _then) = _$UserModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String phone, String name, String avatarUrl, String about, String birthdate, bool isOnline,@JsonKey(name: 'last_seen') DateTime? lastSeen,@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String phone, String name, String avatarUrl, String about, String birthdate, bool isOnline,@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? lastSeen,@TimestampConverter()@JsonKey(name: 'created_at') DateTime? createdAt
 });
 
 
@@ -161,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  bool isOnline, @JsonKey(name: 'last_seen')  DateTime? lastSeen, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
 return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.isOnline,_that.lastSeen,_that.createdAt);case _:
@@ -182,7 +182,7 @@ return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  bool isOnline, @JsonKey(name: 'last_seen')  DateTime? lastSeen, @JsonKey(name: 'created_at')  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _UserModel():
 return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.isOnline,_that.lastSeen,_that.createdAt);case _:
@@ -202,7 +202,7 @@ return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  bool isOnline, @JsonKey(name: 'last_seen')  DateTime? lastSeen, @JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
 return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.isOnline,_that.lastSeen,_that.createdAt);case _:
@@ -217,7 +217,7 @@ return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_tha
 @JsonSerializable()
 
 class _UserModel implements UserModel {
-  const _UserModel({required this.id, required this.phone, this.name = '', this.avatarUrl = '', this.about = '', this.birthdate = '', this.isOnline = false, @JsonKey(name: 'last_seen') this.lastSeen, @JsonKey(name: 'created_at') this.createdAt});
+  const _UserModel({required this.id, required this.phone, this.name = '', this.avatarUrl = '', this.about = '', this.birthdate = '', this.isOnline = false, @TimestampConverter()@JsonKey(name: 'last_seen') this.lastSeen, @TimestampConverter()@JsonKey(name: 'created_at') this.createdAt});
   factory _UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
 
 @override final  String id;
@@ -227,8 +227,8 @@ class _UserModel implements UserModel {
 @override@JsonKey() final  String about;
 @override@JsonKey() final  String birthdate;
 @override@JsonKey() final  bool isOnline;
-@override@JsonKey(name: 'last_seen') final  DateTime? lastSeen;
-@override@JsonKey(name: 'created_at') final  DateTime? createdAt;
+@override@TimestampConverter()@JsonKey(name: 'last_seen') final  DateTime? lastSeen;
+@override@TimestampConverter()@JsonKey(name: 'created_at') final  DateTime? createdAt;
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
@@ -263,7 +263,7 @@ abstract mixin class _$UserModelCopyWith<$Res> implements $UserModelCopyWith<$Re
   factory _$UserModelCopyWith(_UserModel value, $Res Function(_UserModel) _then) = __$UserModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String phone, String name, String avatarUrl, String about, String birthdate, bool isOnline,@JsonKey(name: 'last_seen') DateTime? lastSeen,@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String phone, String name, String avatarUrl, String about, String birthdate, bool isOnline,@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? lastSeen,@TimestampConverter()@JsonKey(name: 'created_at') DateTime? createdAt
 });
 
 

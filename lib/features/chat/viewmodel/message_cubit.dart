@@ -16,6 +16,7 @@ class MessageCubit extends Cubit<MessageState> {
 
   void loadMessages(String chatId) {
     emit(const MessageState.loading());
+    _repository.markChatAsRead(chatId);
     _subscription?.cancel();
     _subscription = _repository.getMessages(chatId).listen(
       (messages) => emit(MessageState.loaded(messages: messages)),

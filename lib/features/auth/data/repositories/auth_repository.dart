@@ -107,12 +107,23 @@ class AuthRepositoryImpl implements AuthRepository {
     String avatarUrl = currentUser.avatarUrl;
 
     if (imageFile != null) {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('user_avatars')
-          .child('${firebaseUser.uid}.jpg');
-      await storageRef.putFile(imageFile);
-      avatarUrl = await storageRef.getDownloadURL();
+      try {
+        final storage = FirebaseStorage.instance;
+        final storageRef = storage
+            .ref()
+            .child('user_avatars')
+            .child('${firebaseUser.uid}.jpg');
+        
+  
+        await storageRef.putFile(imageFile);
+        avatarUrl = await storageRef.getDownloadURL();
+      } catch (e) {
+       
+        if (e is FirebaseException && e.code == 'not-found') {
+          throw Exception('Firebase Storage bucket not found. Please ensure Storage is enabled in the Firebase Console and the bucket name in firebase_options.dart matches.');
+        }
+        rethrow;
+      }
     }
 
     final updatedUser = currentUser.copyWith(

@@ -73,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (doc.exists && mounted) {
       final user = UserModel.fromJson({...doc.data()!, 'id': doc.id});
       setState(() {
-        _otherUserName = user.name.isNotEmpty ? user.name : user.phone;
+        _otherUserName = user.name.isNotEmpty ? user.name : 'User';
         _otherUserAvatar = user.avatarUrl;
         _otherUserAbout = user.about;
         _isOtherUserOnline = user.isOnline;
@@ -183,20 +183,20 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildSubtitle() {
-    if (_isOtherUserOnline) {
-      return Text(
-        'Online',
-        key: const ValueKey('online'),
-        style: TextStyle(color: AppColors.online.withValues(alpha: 0.9), fontSize: 12),
-        overflow: TextOverflow.ellipsis,
-      );
-    }
-
     if (_showAbout && _otherUserAbout.isNotEmpty) {
       return Text(
         _otherUserAbout,
         key: const ValueKey('about'),
         style: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.8), fontSize: 12),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    if (_isOtherUserOnline) {
+      return Text(
+        'Online',
+        key: const ValueKey('online'),
+        style: TextStyle(color: AppColors.online.withValues(alpha: 0.9), fontSize: 12),
         overflow: TextOverflow.ellipsis,
       );
     }
@@ -305,24 +305,31 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.bgInput,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: TextField(
-                controller: _controller,
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
-                textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _send(),
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  hintStyle: TextStyle(
-                    color: AppColors.textHint.withValues(alpha: 0.6),
-                    fontSize: 15,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                  border: InputBorder.none,
+            child: TextField(
+              controller: _controller,
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _send(),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: AppColors.bgInput,
+                hintText: 'Type a message...',
+                hintStyle: TextStyle(
+                  color: AppColors.textHint.withValues(alpha: 0.6),
+                  fontSize: 15,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: const BorderSide(color: AppColors.divider, width: 1.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: const BorderSide(color: AppColors.accent, width: 1.0),
                 ),
               ),
             ),

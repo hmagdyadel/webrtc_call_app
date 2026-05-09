@@ -164,7 +164,7 @@ class _ChatsTab extends StatelessWidget {
   }
 }
 
-class _ChatTile extends StatefulWidget {
+class _ChatTile extends StatelessWidget {
   final ChatModel chat;
   final String currentUserId;
   final String otherId;
@@ -176,87 +176,81 @@ class _ChatTile extends StatefulWidget {
   });
 
   @override
-  State<_ChatTile> createState() => _ChatTileState();
-}
-
-class _ChatTileState extends State<_ChatTile> {
-  String _displayName = '';
-  String _avatarUrl = '';
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserInfo();
-  }
-
-  Future<void> _loadUserInfo() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.otherId)
-          .get();
-      
-      if (doc.exists && mounted) {
-        final user = UserModel.fromJson({...doc.data()!, 'id': doc.id});
-        setState(() {
-          _displayName = user.name.isNotEmpty ? user.name : user.phone;
-          _avatarUrl = user.avatarUrl;
-          _loading = false;
-        });
-      } else if (mounted) {
-        setState(() {
-          _displayName = widget.otherId.substring(0, 8); // fallback
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _displayName = 'User';
-          _loading = false;
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AppColors.primary,
-        backgroundImage: _avatarUrl.isNotEmpty ? NetworkImage(_avatarUrl) : null,
-        child: _avatarUrl.isEmpty
-            ? (_displayName.isNotEmpty && !RegExp(r'^[0-9+]+$').hasMatch(_displayName)
-                ? Text(
-                    _displayName[0].toUpperCase(),
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                  )
-                : const Icon(Icons.person, color: Colors.white, size: 24))
-            : null,
-      ),
-      title: Text(
-        _loading ? '...' : _displayName,
-        style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(otherId).snapshots(),
+      builder: (context, snapshot) {
+        String displayName = '...';
+        String avatarUrl = '';
+        
+        if (snapshot.hasData && snapshot.data!.exists) {
+          try {
+            final data = snapshot.data!.data() as Map<String, dynamic>;
+            final user = UserModel.fromJson({...data, 'id': snapshot.data!.id});
+            displayName = user.name.isNotEmpty ? user.name : 'User';
+            avatarUrl = user.avatarUrl;
+          } catch (e) {
+            displayName = 'User';
+          }
+        } else if (snapshot.hasError || (!snapshot.hasData && snapshot.connectionState == ConnectionState.done)) {
+            displayName = 'User';
+        }
+
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: AppColors.primary,
+            backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+            child: avatarUrl.isEmpty
+                ? (displayName.isNotEmpty && displayName != '...' && !RegExp(r'^[0-9+]+$').hasMatch(displayName)
+                    ? Text(
+                        displayName[0].toUpperCase(),
+                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                      )
+                    : const Icon(Icons.person, color: Colors.white, size: 24))
+                : null,
+          ),
+          title: Text(
+            displayName,
+            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
       subtitle: Text(
-        widget.chat.lastMessage.isEmpty ? 'No messages yet' : widget.chat.lastMessage,
+        chat.lastMessage.isEmpty ? 'No messages yet' : chat.lastMessage,
         style: const TextStyle(color: Colors.grey, fontSize: 13),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: widget.chat.lastMessageTime != null
-          ? Text(
-        _formatTime(widget.chat.lastMessageTime!),
-        style: const TextStyle(color: Colors.grey, fontSize: 12),
-      )
-          : null,
-      onTap: () => context.push(
-        '/home/chat/${widget.chat.id}',
-        extra: {'otherUserId': widget.otherId},
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (chat.lastMessageTime != null)
+            Text(
+              _formatTime(chat.lastMessageTime!),
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          if (chat.unreadCount > 0 && chat.lastMessageSenderId != currentUserId)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: AppColors.accent,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                chat.unreadCount.toString(),
+                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+        ],
       ),
+      onTap: () => context.push(
+        '/home/chat/${chat.id}',
+        extra: {'otherUserId': otherId},
+      ),
+    );
+      },
     );
   }
 
@@ -337,7 +331,7 @@ class _MeTab extends StatelessWidget {
 
         state.whenOrNull(
           authenticated: (user) {
-            displayName = user.name.isNotEmpty ? user.name : user.phone;
+            displayName = user.name.isNotEmpty ? user.name : 'User';
             avatarUrl = user.avatarUrl.isNotEmpty ? user.avatarUrl : null;
           },
         );

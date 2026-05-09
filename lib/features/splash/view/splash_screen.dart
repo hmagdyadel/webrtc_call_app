@@ -7,6 +7,7 @@ import '../../../app/router/app_router.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/utils/onboarding_store.dart';
 import '../../auth/viewmodel/auth_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../auth/viewmodel/auth_state.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,17 +21,32 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   Timer? _timer;
   late final AnimationController _lottieController;
+  bool _timerFinished = false;
 
   @override
   void initState() {
     super.initState();
     _lottieController = AnimationController(vsync: this);
-    _timer = Timer(const Duration(milliseconds: 2400), _routeNext);
+    _timer = Timer(const Duration(milliseconds: 2400), () {
+      _timerFinished = true;
+      _routeNext();
+    });
   }
 
   void _routeNext() {
-    if (!mounted) return;
+    if (!mounted || !_timerFinished) return;
+    
     final authState = getIt<AuthCubit>().state;
+    
+    // Don't route if we are still figuring out the auth state
+    final isDetermined = authState.maybeWhen(
+      initial: () => false,
+      loading: () => false,
+      orElse: () => true,
+    );
+    
+    if (!isDetermined) return;
+
     final isLoggedIn = authState.whenOrNull(authenticated: (_) => true) ?? false;
     final isOnboardingSeen = getIt<OnboardingStore>().isSeen;
 
@@ -50,8 +66,13 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1E),
+    return BlocListener<AuthCubit, AuthState>(
+      bloc: getIt<AuthCubit>(),
+      listener: (context, state) {
+        _routeNext();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0D0D1E),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -102,6 +123,7 @@ class _SplashScreenState extends State<SplashScreen>
           ],
         ),
       ),
+    ),
     );
   }
 }

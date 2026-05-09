@@ -14,12 +14,8 @@ _UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
   about: json['about'] as String? ?? '',
   birthdate: json['birthdate'] as String? ?? '',
   isOnline: json['isOnline'] as bool? ?? false,
-  lastSeen: json['last_seen'] == null
-      ? null
-      : DateTime.parse(json['last_seen'] as String),
-  createdAt: json['created_at'] == null
-      ? null
-      : DateTime.parse(json['created_at'] as String),
+  lastSeen: const TimestampConverter().fromJson(json['last_seen']),
+  createdAt: const TimestampConverter().fromJson(json['created_at']),
 );
 
 Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
@@ -31,6 +27,6 @@ Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
       'about': instance.about,
       'birthdate': instance.birthdate,
       'isOnline': instance.isOnline,
-      'last_seen': instance.lastSeen?.toIso8601String(),
-      'created_at': instance.createdAt?.toIso8601String(),
+      'last_seen': const TimestampConverter().toJson(instance.lastSeen),
+      'created_at': const TimestampConverter().toJson(instance.createdAt),
     };

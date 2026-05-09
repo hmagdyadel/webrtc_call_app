@@ -8,6 +8,7 @@ abstract class ChatRepository {
   Future<String> createOrGetChat(String currentUserId, String otherUserId);
   Stream<List<MessageModel>> getMessages(String chatId);
   Future<void> sendMessage(String chatId, MessageModel message);
+  Future<void> markChatAsRead(String chatId);
 }
 
 @LazySingleton(as: ChatRepository)
@@ -30,4 +31,8 @@ class ChatRepositoryImpl implements ChatRepository {
   @override
   Future<void> sendMessage(String chatId, MessageModel message) =>
       _source.sendMessage(chatId, message);
+
+  @override
+  Future<void> markChatAsRead(String chatId) =>
+      _source.markChatAsRead(chatId);
 }

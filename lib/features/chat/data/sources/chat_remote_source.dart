@@ -8,6 +8,7 @@ abstract class ChatRemoteSource {
   Future<String> createOrGetChat(String currentUserId, String otherUserId);
   Stream<List<MessageModel>> getMessages(String chatId);
   Future<void> sendMessage(String chatId, MessageModel message);
+  Future<void> markChatAsRead(String chatId);
 }
 
 @LazySingleton(as: ChatRemoteSource)
@@ -87,8 +88,16 @@ class ChatRemoteSourceImpl implements ChatRemoteSource {
       'lastMessage': message.text,
       'lastMessageSenderId': message.senderId,
       'last_message_time': FieldValue.serverTimestamp(),
+      'unreadCount': FieldValue.increment(1),
     });
 
     await batch.commit();
+  }
+
+  @override
+  Future<void> markChatAsRead(String chatId) async {
+    await _firestore.collection('chats').doc(chatId).update({
+      'unreadCount': 0,
+    });
   }
 }
