@@ -8,8 +8,8 @@
 | 5 | Bug Fixes (icons, OTP loop, mounted, Firestore index) | ✅ Complete |
 | 6 | Navigation & UX Polish | ✅ Complete |
 | 7 | Chat Screen & Real Messaging | ✅ Complete |
-| 8 | QR Code | 🔲 Next |
-| 9 | WebRTC Voice Calls | 🔲 Planned |
+| 8 | QR Code | ✅ Complete |
+| 9 | WebRTC Voice Calls | 🔲 Next |
 | 10 | Video Calls | 🔲 Planned |
 | 11 | Push Notifications (FCM) | 🔲 Planned |
 | 12 | Native Call UI (CallKit/ConnectionService) | 🔲 Planned |

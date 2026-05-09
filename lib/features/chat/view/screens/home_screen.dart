@@ -118,8 +118,11 @@ class _ChatsTab extends StatelessWidget {
                 fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-              icon: const Icon(Icons.search, color: Colors.white),
-              onPressed: () {}),
+            icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+            onPressed: () {
+              context.push(AppRoutePaths.qrScanner);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white),
             onPressed: () async {
@@ -347,10 +350,37 @@ class _MeTab extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right, color: Colors.grey),
           ),
           ListTile(
+            leading: const Icon(Icons.qr_code, color: Colors.white),
+            title: const Text('My QR Code',
+                style: TextStyle(color: Colors.white)),
+            onTap: () => context.push(AppRoutePaths.myQr),
+          ),
+          ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Sign Out',
                 style: TextStyle(color: Colors.red)),
-            onTap: () => context.read<AuthCubit>().signOut(),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Sign Out'),
+                  content: const Text('Are you sure you want to sign out?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.read<AuthCubit>().signOut();
+                      },
+                      child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),

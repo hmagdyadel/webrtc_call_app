@@ -10,6 +10,8 @@ import '../../features/auth/viewmodel/auth_state.dart';
 import '../../features/chat/view/screens/chat_screen.dart';
 import '../../features/chat/view/screens/home_screen.dart';
 import '../../features/chat/view/screens/new_chat_screen.dart';
+import '../../features/chat/view/screens/my_qr_screen.dart';
+import '../../features/chat/view/screens/qr_scanner_screen.dart';
 import '../../features/onboarding/view/onboarding_screen.dart';
 import '../../features/splash/view/splash_screen.dart';
 import '../../core/di/injection.dart';
@@ -22,6 +24,8 @@ class AppRoutePaths {
   static const home = '/home';
   static const newChat = '/home/new-chat';
   static const chatDetail = '/home/chat/:chatId';
+  static const myQr = '/home/qr-my';
+  static const qrScanner = '/home/qr-scanner';
 }
 
 GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
@@ -99,6 +103,14 @@ GoRouter createAppRouter(AuthCubit authCubit, OnboardingStore onboardingStore) {
             otherUserId: otherUserId,
           );
         },
+      ),
+      GoRoute(
+        path: AppRoutePaths.myQr,
+        builder: (context, state) => const MyQRScreen(),
+      ),
+      GoRoute(
+        path: AppRoutePaths.qrScanner,
+        builder: (context, state) => const QRScannerScreen(),
       ),
     ],
   );
