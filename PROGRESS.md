@@ -105,7 +105,7 @@
 
 ### 20c: UX & Navigation Fixes ✅
 - **Navigation**: Fixed "pop over-flow" bug where sending an image would exit to the Home screen instead of staying in Chat.
-- **Crop Mode**: Optimized `ProImageEditor` configurations for better crop initialization.
+- **WhatsApp-Style Edit**: Optimized `ProImageEditor` to launch **directly into crop mode** with visible handles, matching the professional WhatsApp experience.
 - **"Save as Sticker" Action**: Users can now long-press any received sticker to save it to their local collection.
 
 ---

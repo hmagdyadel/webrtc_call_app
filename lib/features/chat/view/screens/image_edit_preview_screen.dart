@@ -40,6 +40,7 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
   late File _currentFile;
   bool _isSending = false;
   bool _isConvertingSticker = false;
+  bool _isEditorClosing = false;
 
   @override
   void initState() {
@@ -52,31 +53,48 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
     final bytes = await _currentFile.readAsBytes();
     if (!mounted) return;
 
+    _isEditorClosing = false;
+
+    final editorKey = GlobalKey<ProImageEditorState>();
+
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
-        builder: (_) => ProImageEditor.memory(
+        builder: (editorContext) => ProImageEditor.memory(
           bytes,
+          key: editorKey,
           configs: const ProImageEditorConfigs(
             designMode: ImageEditorDesignMode.material,
           ),
           callbacks: ProImageEditorCallbacks(
+            mainEditorCallbacks: MainEditorCallbacks(
+              onAfterViewInit: () {
+                // WhatsApp-like: Open crop editor automatically on start
+                editorKey.currentState?.openCropRotateEditor();
+              },
+            ),
             onImageEditingComplete: (Uint8List editedBytes) async {
+              if (_isEditorClosing) return;
+              _isEditorClosing = true;
+
               final dir = await getTemporaryDirectory();
               final editedFile = File(
                 '${dir.path}/edited_${DateTime.now().millisecondsSinceEpoch}.jpg',
               );
               await editedFile.writeAsBytes(editedBytes);
+              
               if (mounted) {
                 // Return result to the push call below
-                Navigator.pop(context, {
+                Navigator.pop(editorContext, {
                   'file': editedFile,
                   'isSticker': false,
                 });
               }
             },
             onCloseEditor: (_) {
-              Navigator.pop(context);
+              if (_isEditorClosing) return;
+              _isEditorClosing = true;
+              Navigator.pop(editorContext);
             },
           ),
         ),
@@ -142,28 +160,32 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
 
     for (int y = 0; y < source.height; y++) {
       for (int x = 0; x < source.width; x++) {
-        if (_isInRoundedCorner(x, y, source.width, source.height, radius)) {
-          result.setPixelRgba(x, y, 0, 0, 0, 0);
+        final pixel = source.getPixel(x, y);
+        if (_isInsideRoundedCorner(x, y, source.width, source.height, radius)) {
+          result.setPixel(x, y, pixel);
         } else {
-          result.setPixel(x, y, source.getPixel(x, y));
+          result.setPixel(x, y, img.ColorRgba8(0, 0, 0, 0));
         }
       }
     }
     return result;
   }
 
-  bool _isInRoundedCorner(int x, int y, int w, int h, int r) {
+  bool _isInsideRoundedCorner(int x, int y, int w, int h, int r) {
+    if (x >= r && x < w - r) return true;
+    if (y >= r && y < h - r) return true;
+
     if (x < r && y < r) {
-      return (x - r) * (x - r) + (y - r) * (y - r) > r * r;
+      return (x - r) * (x - r) + (y - r) * (y - r) <= r * r;
     }
     if (x >= w - r && y < r) {
-      return (x - (w - r)) * (x - (w - r)) + (y - r) * (y - r) > r * r;
+      return (x - (w - r)) * (x - (w - r)) + (y - r) * (y - r) <= r * r;
     }
     if (x < r && y >= h - r) {
-      return (x - r) * (x - r) + (y - (h - r)) * (y - (h - r)) > r * r;
+      return (x - r) * (x - r) + (y - (h - r)) * (y - (h - r)) <= r * r;
     }
     if (x >= w - r && y >= h - r) {
-      return (x - (w - r)) * (x - (w - r)) + (y - (h - r)) * (y - (h - r)) > r * r;
+      return (x - (w - r)) * (x - (w - r)) + (y - (h - r)) * (y - (h - r)) <= r * r;
     }
     return false;
   }
@@ -194,212 +216,125 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.sawaColors;
-    final nameInitial = widget.otherUserName.isNotEmpty
-        ? widget.otherUserName[0].toUpperCase()
-        : '?';
 
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: colors.card,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primary,
-              child: Text(
-                nameInitial,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
+        children: [
+          // ── Image Preview Area ─────────────────────────────────────
+          Positioned.fill(
+            child: _isConvertingSticker
+                ? const Center(child: CircularProgressIndicator(color: AppColors.accent))
+                : GestureDetector(
+                    onTap: _openEditor,
+                    child: Hero(
+                      tag: widget.imageFile.path,
+                      child: Image.file(
+                        _currentFile,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+          ),
+
+          // ── Top Bar ──────────────────────────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 10,
+            right: 10,
+            child: Row(
               children: [
-                Text(
-                  widget.otherUserName.isNotEmpty
-                      ? widget.otherUserName
-                      : 'User',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                CircleAvatar(
+                  backgroundColor: Colors.black45,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
+                const Spacer(),
                 Text(
-                  widget.otherUserOnline ? 'متصل الآن' : 'آخر ظهور مؤخراً',
-                  style: TextStyle(
-                    color: widget.otherUserOnline
-                        ? AppColors.accent
-                        : colors.text3,
-                    fontSize: 11,
+                  widget.otherUserName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: widget.otherUserOnline ? Colors.green : Colors.grey,
+                    shape: BoxShape.circle,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-        actions: [
-          if (_isSending)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  color: AppColors.primary,
-                  strokeWidth: 2,
+          ),
+
+          // ── Bottom Action Bar ──────────────────────────────────────
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 20,
+            left: 20,
+            right: 20,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(
+                  icon: Icons.edit_outlined,
+                  label: 'Edit',
+                  onTap: _openEditor,
                 ),
-              ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.send_rounded, color: AppColors.accent),
-              onPressed: () => _sendImage(asSticker: false),
-              tooltip: 'إرسال',
-            ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Main image preview
-          Expanded(
-            child: Container(
-              color: Colors.black,
-              child: InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 4.0,
-                child: Center(
-                  child: Image.file(
-                    _currentFile,
-                    fit: BoxFit.contain,
-                  ),
+                _buildActionButton(
+                  icon: Icons.auto_awesome_outlined,
+                  label: 'Sticker',
+                  onTap: _convertToSticker,
                 ),
-              ),
+                const SizedBox(width: 40), // Spacer for the FAB-like send button
+              ],
             ),
           ),
 
-          // Bottom action bar
-          Container(
-            color: colors.card,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            child: SafeArea(
-              top: false,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Edit button
-                  _ActionButton(
-                    icon: Icons.edit_outlined,
-                    label: 'تعديل',
-                    color: AppColors.primaryLight,
-                    onTap: _openEditor,
-                  ),
-
-                  // Crop button (opens editor which has crop)
-                  _ActionButton(
-                    icon: Icons.crop,
-                    label: 'اقتصاص',
-                    color: AppColors.accent,
-                    onTap: _openEditor,
-                  ),
-
-                  // Sticker conversion
-                  _ActionButton(
-                    icon: Icons.auto_awesome,
-                    label: 'ستيكر',
-                    color: const Color(0xFFFFB347),
-                    isLoading: _isConvertingSticker,
-                    onTap: _isConvertingSticker ? null : _convertToSticker,
-                  ),
-
-                  // Send button
-                  _ActionButton(
-                    icon: Icons.send_rounded,
-                    label: 'إرسال',
-                    color: AppColors.primary,
-                    isLoading: _isSending,
-                    isPrimary: true,
-                    onTap: _isSending ? null : () => _sendImage(asSticker: false),
-                  ),
-                ],
-              ),
+          // ── Send Button ───────────────────────────────────────────
+          Positioned(
+            bottom: MediaQuery.of(context).padding.bottom + 10,
+            right: 20,
+            child: FloatingActionButton(
+              backgroundColor: AppColors.accent,
+              onPressed: _isSending ? null : () => _sendImage(),
+              child: _isSending
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Icon(Icons.send_rounded, color: Colors.white),
             ),
           ),
         ],
       ),
     );
   }
-}
 
-// ── Reusable action button ──────────────────────────────────────
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-  final bool isLoading;
-  final bool isPrimary;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-    this.isLoading = false,
-    this.isPrimary = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isPrimary ? color : color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(14),
-          border: isPrimary ? null : Border.all(color: color.withValues(alpha: 0.3)),
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          backgroundColor: Colors.white24,
+          radius: 25,
+          child: IconButton(
+            icon: Icon(icon, color: Colors.white),
+            onPressed: onTap,
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            isLoading
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: isPrimary ? Colors.white : color,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Icon(
-                    icon,
-                    color: isPrimary ? Colors.white : color,
-                    size: 22,
-                  ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isPrimary ? Colors.white : color,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 12),
         ),
-      ),
+      ],
     );
   }
 }
