@@ -57,14 +57,112 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
 
     final editorKey = GlobalKey<ProImageEditorState>();
 
+    final navigator = Navigator.of(context);
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (editorContext) => ProImageEditor.memory(
           bytes,
           key: editorKey,
-          configs: const ProImageEditorConfigs(
+          configs: ProImageEditorConfigs(
             designMode: ImageEditorDesignMode.material,
+            mainEditor: MainEditorConfigs(
+              style: MainEditorStyle(
+                appBarBackground: Theme.of(context).appBarTheme.backgroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.primary),
+                appBarColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                background: Theme.of(context).scaffoldBackgroundColor,
+                bottomBarBackground: Theme.of(context).appBarTheme.backgroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.primary),
+                bottomBarColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+              ),
+              widgets: MainEditorWidgets(
+                appBar: (editor, rebuildStream) => ReactiveAppbar(
+                  stream: rebuildStream,
+                  builder: (context) => AppBar(
+                    backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.primary),
+                    foregroundColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new),
+                      onPressed: () => editor.closeEditor(),
+                    ),
+                    title: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.otherUserName,
+                                style: (Theme.of(context).appBarTheme.titleTextStyle ?? const TextStyle(color: Colors.white)).copyWith(fontSize: 16),
+                              ),
+                              Text(
+                                widget.otherUserOnline ? 'متصل الآن' : 'آخر ظهور قريباً',
+                                style: TextStyle(
+                                  fontSize: 12, 
+                                  color: (Theme.of(context).appBarTheme.foregroundColor ?? Colors.white).withValues(alpha: 0.7)
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.send_rounded, color: AppColors.accent),
+                        onPressed: () => editor.doneEditing(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            cropRotateEditor: CropRotateEditorConfigs(
+              style: CropRotateEditorStyle(
+                appBarBackground: Theme.of(context).appBarTheme.backgroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.primary),
+                appBarColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                background: Theme.of(context).scaffoldBackgroundColor,
+                bottomBarBackground: Theme.of(context).appBarTheme.backgroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.primary),
+                bottomBarColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+              ),
+              widgets: CropRotateEditorWidgets(
+                appBar: (editorState, rebuildStream) => ReactiveAppbar(
+                  stream: rebuildStream,
+                  builder: (context) => AppBar(
+                    backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? (Theme.of(context).brightness == Brightness.dark ? AppColors.darkCard : AppColors.primary),
+                    foregroundColor: Theme.of(context).appBarTheme.foregroundColor ?? Colors.white,
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new),
+                      onPressed: () {
+                        // For sub-editors, just pop the current view
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.otherUserName,
+                          style: (Theme.of(context).appBarTheme.titleTextStyle ?? const TextStyle(color: Colors.white)).copyWith(fontSize: 16),
+                        ),
+                        Text(
+                          widget.otherUserOnline ? 'متصل الآن' : 'آخر ظهور قريباً',
+                          style: TextStyle(
+                            fontSize: 12, 
+                            color: (Theme.of(context).appBarTheme.foregroundColor ?? Colors.white).withValues(alpha: 0.7)
+                          ),
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.send_rounded, color: AppColors.accent),
+                        onPressed: () => editorState.done(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
           callbacks: ProImageEditorCallbacks(
             mainEditorCallbacks: MainEditorCallbacks(
@@ -73,10 +171,18 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
                 editorKey.currentState?.openCropRotateEditor();
               },
             ),
+            cropRotateEditorCallbacks: CropRotateEditorCallbacks(
+              onDone: () {
+                // When they finish cropping, immediately finish the whole editor
+                // to avoid the "second" edit screen.
+                editorKey.currentState?.doneEditing();
+              },
+            ),
             onImageEditingComplete: (Uint8List editedBytes) async {
               if (_isEditorClosing) return;
               _isEditorClosing = true;
 
+              final nav = Navigator.of(editorContext);
               final dir = await getTemporaryDirectory();
               final editedFile = File(
                 '${dir.path}/edited_${DateTime.now().millisecondsSinceEpoch}.jpg',
@@ -85,16 +191,21 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
               
               if (mounted) {
                 // Return result to the push call below
-                Navigator.pop(editorContext, {
+                nav.pop({
                   'file': editedFile,
                   'isSticker': false,
                 });
               }
             },
-            onCloseEditor: (_) {
-              if (_isEditorClosing) return;
-              _isEditorClosing = true;
-              Navigator.pop(editorContext);
+            onCloseEditor: (mode) {
+              if (mode == EditorMode.main) {
+                if (_isEditorClosing) return;
+                _isEditorClosing = true;
+                Navigator.of(editorContext).pop();
+              } else {
+                // Sub-editors should be popped by their own buttons or back gesture
+                // We don't want to close the WHOLE editor here unless it's the main one
+              }
             },
           ),
         ),
@@ -103,7 +214,7 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
 
     if (result != null && mounted) {
       // If we got a result from the editor, return it to ChatScreen immediately
-      Navigator.pop(context, result);
+      navigator.pop(result);
     }
   }
 
