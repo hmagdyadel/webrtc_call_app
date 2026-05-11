@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -59,6 +61,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final _random = math.Random();
   List<double> _recordingWaves = List<double>.filled(26, 0.2);
 
+  bool _showEmoji = false;
+  final FocusNode _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +77,12 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           _showAbout = !_showAbout;
         });
+      }
+    });
+
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus && _showEmoji) {
+        setState(() => _showEmoji = false);
       }
     });
   }
@@ -90,6 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _scrollController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -559,14 +571,59 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.sawaColors;
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(child: _buildMessageList()),
-          _buildInputBar(),
-        ],
+    return PopScope(
+      canPop: !_showEmoji,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_showEmoji) {
+          setState(() => _showEmoji = false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: colors.background,
+        appBar: _buildAppBar(),
+        body: Column(
+          children: [
+            Expanded(child: _buildMessageList()),
+            _buildInputBar(),
+            if (_showEmoji) _buildEmojiPicker(colors),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmojiPicker(SawaColors colors) {
+    return SizedBox(
+      height: 280,
+      child: EmojiPicker(
+        textEditingController: _controller,
+        config: Config(
+          height: 280,
+          checkPlatformCompatibility: true,
+          emojiViewConfig: EmojiViewConfig(
+            backgroundColor: colors.card,
+            columns: 7,
+            emojiSizeMax: 28 * (defaultTargetPlatform == TargetPlatform.iOS ? 1.20 : 1.0),
+          ),
+          categoryViewConfig: CategoryViewConfig(
+            backgroundColor: colors.card,
+            dividerColor: colors.divider,
+            indicatorColor: AppColors.primary,
+            iconColorSelected: AppColors.primary,
+            iconColor: colors.text3,
+          ),
+          bottomActionBarConfig: BottomActionBarConfig(
+            backgroundColor: colors.card,
+            buttonColor: colors.card,
+            buttonIconColor: colors.text3,
+          ),
+          searchViewConfig: SearchViewConfig(
+            backgroundColor: colors.card,
+            hintText: 'Search emoji...',
+            buttonIconColor: colors.text1,
+          ),
+        ),
       ),
     );
   }
@@ -802,6 +859,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   )
                 : TextField(
                     controller: _controller,
+                    focusNode: _focusNode,
                     style: TextStyle(color: colors.text1, fontSize: 15),
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _send(),
@@ -814,10 +872,31 @@ class _ChatScreenState extends State<ChatScreen> {
                         fontSize: 15,
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      prefixIcon: IconButton(
-                        icon: Icon(Icons.auto_awesome_rounded, color: colors.text2, size: 22),
-                        onPressed: _showStickerPicker,
-                        tooltip: 'الملصقات',
+                      prefixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              _showEmoji ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                              color: colors.text2,
+                              size: 22,
+                            ),
+                            onPressed: () {
+                              if (_showEmoji) {
+                                _focusNode.requestFocus();
+                              } else {
+                                _focusNode.unfocus();
+                              }
+                              setState(() => _showEmoji = !_showEmoji);
+                            },
+                            tooltip: 'الرموز التعبيرية',
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.auto_awesome_rounded, color: colors.text2, size: 22),
+                            onPressed: _showStickerPicker,
+                            tooltip: 'الملصقات',
+                          ),
+                        ],
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(Icons.attach_file, color: colors.text2),

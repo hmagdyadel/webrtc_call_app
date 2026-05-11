@@ -52,7 +52,7 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
     final bytes = await _currentFile.readAsBytes();
     if (!mounted) return;
 
-    await Navigator.push(
+    final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (_) => ProImageEditor.memory(
@@ -68,9 +68,8 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
               );
               await editedFile.writeAsBytes(editedBytes);
               if (mounted) {
-                // Immediately return the edited file to ChatScreen to be sent
-                Navigator.pop(context); // Close editor
-                Navigator.pop(context, { // Close preview screen and return result
+                // Return result to the push call below
+                Navigator.pop(context, {
                   'file': editedFile,
                   'isSticker': false,
                 });
@@ -83,6 +82,11 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
         ),
       ),
     );
+
+    if (result != null && mounted) {
+      // If we got a result from the editor, return it to ChatScreen immediately
+      Navigator.pop(context, result);
+    }
   }
 
   // ── Convert to sticker (rounded corners PNG) ──────────────────

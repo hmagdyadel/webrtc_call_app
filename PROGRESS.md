@@ -97,13 +97,16 @@
 - **Persistent Storage**: Save stickers to `app_documents/stickers/` folder using `StickerService`.
 - **Metadata Management**: Track saved stickers using `SharedPreferences`.
 
-### 20b: Sticker Picker UI ✅
-- **Input Integration**: Added sticker icon (✨) to Chat input bar.
+### 20b: Sticker & Emoji Picker UI ✅
+- **Input Integration**: Added sticker (✨) and emoji (😊) icons to Chat input bar.
+- **Emoji Picker**: Integrated `emoji_picker_flutter` with Sawa theme support and back-button handling.
 - **Picker BottomSheet**: Implemented `StickerPicker` grid with delete functionality.
-- **Instant Send**: Tap to send stickers directly from the local gallery.
+- **Instant Send**: Tap to send stickers/emojis directly.
 
-### 20c: "Save as Sticker" Action ✅
-- **Long-Press Menu**: Users can now long-press any received sticker to save it to their local collection.
+### 20c: UX & Navigation Fixes ✅
+- **Navigation**: Fixed "pop over-flow" bug where sending an image would exit to the Home screen instead of staying in Chat.
+- **Crop Mode**: Optimized `ProImageEditor` configurations for better crop initialization.
+- **"Save as Sticker" Action**: Users can now long-press any received sticker to save it to their local collection.
 
 ---
 
