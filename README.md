@@ -25,8 +25,8 @@
 - 🔐 **Phone OTP Authentication** — Firebase Auth with Egypt (+20) default.
 - 🎨 **Unified Dynamic Theme System** — Professional `ThemeExtension` architecture supporting Dark and Light modes.
 - 💬 **Multimedia Chat** — Text, Images, Videos, Audio (with waveforms), Location, and Native Contacts.
-- 🎤 **Advanced Voice Messaging** — Real-time waveform recording, speed control (1x-2x), and seeking.
-- 🖼️ **Image Editing & Stickers** — Full editor (draw, text, emoji, crop, filters) + sticker conversion before sending.
+- ✨ **Sticker & Emoji Picker** — Built-in local sticker library, emoji integration, and WhatsApp-style floating sticker rendering.
+- 🖼️ **Pro Image Editor** — WhatsApp-style workflow: launches directly into crop mode, custom themed AppBars with recipient status, and streamlined "one-tap" send flow.
 - 📞 **Voice & Video Calls** — WebRTC-powered high-quality calling (In Progress).
 - 🔗 **QR Code Discovery** — Scan to add contacts instantly.
 - 🗺️ **Location Sharing** — Coordinate-based sharing with native map deep linking.
