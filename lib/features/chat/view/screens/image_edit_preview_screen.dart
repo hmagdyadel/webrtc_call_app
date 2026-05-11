@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pro_image_editor/pro_image_editor.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/services/sticker_service.dart';
 
 /// Full-screen image preview with editing, cropping, and sticker conversion.
 ///
@@ -166,10 +168,22 @@ class _ImageEditPreviewScreenState extends State<ImageEditPreviewScreen> {
   Future<void> _sendImage({bool asSticker = false}) async {
     setState(() => _isSending = true);
 
+    File finalFile = _currentFile;
+
+    if (asSticker) {
+      try {
+        // Save permanently to the sticker gallery for future reuse
+        finalFile = await getIt<StickerService>().saveSticker(_currentFile);
+      } catch (e) {
+        debugPrint('Error saving sticker to gallery: $e');
+        // Fallback to temp file if saving fails
+      }
+    }
+
     // Pop back to ChatScreen and return result
     if (!mounted) return;
     Navigator.pop(context, {
-      'file': _currentFile,
+      'file': finalFile,
       'isSticker': asSticker,
     });
   }

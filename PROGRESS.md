@@ -91,19 +91,19 @@
 
 ---
 
-## Phase 20 — Local Sticker Storage & Picker (In Progress) 🏗️
+## Phase 20 — Local Sticker Storage & Picker ✅
 
-### 20a: Sticker Storage Service 🏗️
-- **Persistent Storage**: Save stickers to `app_documents/stickers/` folder.
-- **Metadata Management**: Track saved stickers using `StickerStore`.
+### 20a: Sticker Storage Service ✅
+- **Persistent Storage**: Save stickers to `app_documents/stickers/` folder using `StickerService`.
+- **Metadata Management**: Track saved stickers using `SharedPreferences`.
 
-### 20b: Sticker Picker UI 🏗️
-- **Input Integration**: Add sticker icon to Chat input bar.
-- **Picker BottomSheet**: Grid view of previously created/saved stickers.
-- **Instant Send**: Tap to send from the local gallery.
+### 20b: Sticker Picker UI ✅
+- **Input Integration**: Added sticker icon (✨) to Chat input bar.
+- **Picker BottomSheet**: Implemented `StickerPicker` grid with delete functionality.
+- **Instant Send**: Tap to send stickers directly from the local gallery.
 
-### 20c: "Save as Sticker" Action 🏗️
-- **Long-Press Menu**: Add option to save incoming images/stickers to the local gallery.
+### 20c: "Save as Sticker" Action ✅
+- **Long-Press Menu**: Users can now long-press any received sticker to save it to their local collection.
 
 ---
 

@@ -18,6 +18,7 @@ import '../../../auth/data/models/user_model.dart';
 import '../../viewmodel/message_cubit.dart';
 import '../../viewmodel/message_state.dart';
 import '../widgets/message_bubble.dart';
+import '../widgets/sticker_picker.dart';
 import 'image_edit_preview_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -230,6 +231,24 @@ class _ChatScreenState extends State<ChatScreen> {
       senderId: widget.currentUserId,
       filePath: file.path,
       type: isSticker ? 'sticker' : 'image',
+    );
+  }
+
+  void _showStickerPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StickerPicker(
+        onStickerSelected: (path) {
+          _messageCubit.sendMediaMessage(
+            chatId: widget.chatId,
+            senderId: widget.currentUserId,
+            filePath: path,
+            type: 'sticker',
+          );
+        },
+      ),
     );
   }
 
@@ -795,6 +814,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         fontSize: 15,
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      prefixIcon: IconButton(
+                        icon: Icon(Icons.auto_awesome_rounded, color: colors.text2, size: 22),
+                        onPressed: _showStickerPicker,
+                        tooltip: 'الملصقات',
+                      ),
                       suffixIcon: IconButton(
                         icon: Icon(Icons.attach_file, color: colors.text2),
                         onPressed: _showAttachmentMenu,

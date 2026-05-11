@@ -11,9 +11,11 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:sawa/core/di/app_module.dart' as _i731;
 import 'package:sawa/core/network/dio_client.dart' as _i611;
 import 'package:sawa/core/services/presence_service.dart' as _i360;
 import 'package:sawa/core/services/push_notification_service.dart' as _i19;
+import 'package:sawa/core/services/sticker_service.dart' as _i804;
 import 'package:sawa/core/theme/theme_cubit.dart' as _i724;
 import 'package:sawa/features/auth/data/repositories/auth_repository.dart'
     as _i880;
@@ -32,14 +34,20 @@ import 'package:sawa/features/contacts/data/repositories/contacts_repository.dar
     as _i765;
 import 'package:sawa/features/contacts/data/sources/contacts_remote_source.dart'
     as _i93;
+import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
-  _i174.GetIt init({
+  Future<_i174.GetIt> init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
-  }) {
+  }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
+    final appModule = _$AppModule();
+    await gh.factoryAsync<_i460.SharedPreferences>(
+      () => appModule.prefs,
+      preResolve: true,
+    );
     gh.singleton<_i611.DioClient>(() => _i611.DioClient());
     gh.singleton<_i724.ThemeCubit>(() => _i724.ThemeCubit());
     gh.lazySingleton<_i19.PushNotificationService>(
@@ -59,6 +67,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i765.ContactsRepository>(
       () => _i765.ContactsRepositoryImpl(gh<_i93.ContactsRemoteSource>()),
+    );
+    gh.lazySingleton<_i804.StickerService>(
+      () => _i804.StickerService(gh<_i460.SharedPreferences>()),
     );
     gh.lazySingleton<_i880.AuthRepository>(
       () => _i880.AuthRepositoryImpl(
@@ -84,3 +95,5 @@ extension GetItInjectableX on _i174.GetIt {
     return this;
   }
 }
+
+class _$AppModule extends _i731.AppModule {}

@@ -7,6 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../data/models/message_model.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/services/sticker_service.dart';
 import 'audio_player_widget.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -84,46 +87,51 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildSticker(BuildContext context) {
-    return Align(
-      alignment: isSent ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.only(
-          left: isSent ? 60 : 12,
-          right: isSent ? 12 : 60,
-          top: 4,
-          bottom: 4,
-        ),
-        child: Column(
-          crossAxisAlignment: isSent ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-          children: [
-            if (message.mediaUrl != null)
-              CachedNetworkImage(
-                imageUrl: message.mediaUrl!,
-                width: 120,
-                height: 120,
-                fit: BoxFit.contain,
-                placeholder: (context, url) => const SizedBox(
-                  width: 120, height: 120, child: Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-              )
-            else
-              const Icon(Icons.broken_image, size: 120, color: Colors.grey),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _formatTime(message.timestamp),
-                  style: TextStyle(color: context.sawaColors.text3, fontSize: 11),
-                ),
-                if (isSent) ...[
-                  const SizedBox(width: 4),
-                  _buildStatusIcon(message.status),
+    return GestureDetector(
+      onLongPress: () => _showStickerOptions(context),
+      child: Align(
+        alignment: isSent ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          margin: EdgeInsets.only(
+            left: isSent ? 60 : 12,
+            right: isSent ? 12 : 60,
+            top: 4,
+            bottom: 4,
+          ),
+          child: Column(
+            crossAxisAlignment: isSent ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            children: [
+              if (message.mediaUrl != null)
+                CachedNetworkImage(
+                  imageUrl: message.mediaUrl!,
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.contain,
+                  placeholder: (context, url) => const SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                )
+              else
+                const Icon(Icons.broken_image, size: 120, color: Colors.grey),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _formatTime(message.timestamp),
+                    style: TextStyle(color: context.sawaColors.text3, fontSize: 11),
+                  ),
+                  if (isSent) ...[
+                    const SizedBox(width: 4),
+                    _buildStatusIcon(message.status),
+                  ],
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -424,6 +432,57 @@ class MessageBubble extends StatelessWidget {
             height: 1.4,
           ),
         );
+    }
+  }
+
+  Future<void> _showStickerOptions(BuildContext context) async {
+    final colors = context.sawaColors;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.bookmark_add_outlined, color: AppColors.primary),
+              title: Text('حفظ في ملصقاتي', style: TextStyle(color: colors.text1)),
+              onTap: () {
+                Navigator.pop(context);
+                _saveStickerToGallery(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveStickerToGallery(BuildContext context) async {
+    if (message.mediaUrl == null) return;
+
+    try {
+      final file = await DefaultCacheManager().getSingleFile(message.mediaUrl!);
+      await getIt<StickerService>().saveSticker(file);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم الحفظ في ملصقاتك بنجاح ✅'),
+            backgroundColor: AppColors.accent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('فشل حفظ الملصق')),
+        );
+      }
     }
   }
 
