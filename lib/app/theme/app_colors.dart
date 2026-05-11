@@ -25,10 +25,10 @@ class AppColors {
 
   // ── LIGHT THEME ──────────────────────────────────────────────
   static const Color lightBg        = Color(0xFFF5F4FF); 
-  static const Color lightCard      = Color(0xFFFFFFFF); 
+  static const Color lightCard      = Color(0xFFEEEAFF); // Soft purple tint (app bar + nav)
   static const Color lightSurface   = Color(0xFFEDE9FF); 
   static const Color lightInput     = Color(0xFFF0EEFF); 
-  static const Color lightDivider   = Color(0xFFE8E6FA); 
+  static const Color lightDivider   = Color(0xFFD4CFFF); // Deeper, more visible
   static const Color lightText1     = Color(0xFF1A1640); 
   static const Color lightText2     = Color(0xFF5C558C); 
   static const Color lightText3     = Color(0xFF9B96C4); 

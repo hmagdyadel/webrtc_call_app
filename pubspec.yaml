@@ -72,6 +72,8 @@ dependencies:
   audioplayers: ^6.6.0
   flutter_contacts: ^2.0.2
   path: ^1.9.1
+  pro_image_editor: ^12.4.4
+  image: ^4.2.0
 
 dev_dependencies:
   flutter_test:

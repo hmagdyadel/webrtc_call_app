@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../viewmodel/auth_cubit.dart';
 import '../../viewmodel/auth_state.dart';
 
@@ -58,11 +59,11 @@ class _OtpScreenState extends State<OtpScreen> {
         );
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: context.sawaColors.background,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1A1A2E),
+          backgroundColor: context.sawaColors.card,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.white),
+          iconTheme: IconThemeData(color: context.sawaColors.text1),
         ),
         body: Padding(
           padding: const EdgeInsets.all(24),
@@ -70,10 +71,10 @@ class _OtpScreenState extends State<OtpScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'Verification code',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: context.sawaColors.text1,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -81,7 +82,7 @@ class _OtpScreenState extends State<OtpScreen> {
               const SizedBox(height: 8),
               Text(
                 'Enter the 6-digit code sent to ${widget.phoneNumber}',
-                style: const TextStyle(color: Colors.grey, fontSize: 14),
+                style: TextStyle(color: context.sawaColors.text3, fontSize: 14),
               ),
               const SizedBox(height: 40),
               // OTP boxes
@@ -96,9 +97,9 @@ class _OtpScreenState extends State<OtpScreen> {
                   onPressed: () {
                     context.read<AuthCubit>().sendOTP(widget.phoneNumber);
                   },
-                  child: const Text(
+                  child: Text(
                     'Resend code',
-                    style: TextStyle(color: Color(0xFF0F3460)),
+                    style: TextStyle(color: AppColors.primary),
                   ),
                 ),
               ),
@@ -112,7 +113,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     child: ElevatedButton(
                       onPressed: _onVerify,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F3460),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -144,21 +145,22 @@ class _OtpScreenState extends State<OtpScreen> {
       child: TextField(
         controller: _controllers[index],
         focusNode: _focusNodes[index],
+        autofocus: index == 0,
         textAlign: TextAlign.center,
         keyboardType: TextInputType.number,
         maxLength: 1,
-        style: const TextStyle(color: Colors.white, fontSize: 20),
+        style: TextStyle(color: context.sawaColors.text1, fontSize: 20),
         decoration: InputDecoration(
           counterText: '',
           filled: true,
-          fillColor: const Color(0xFF16213E),
+          fillColor: context.sawaColors.input,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF0F3460), width: 2),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
         ),
         onChanged: (value) {

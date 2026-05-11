@@ -19,6 +19,7 @@
 | 16 | Production Hardening | 🔲 Planned |
 | 17 | Multimedia Chat (Audio 2.0, Location 2.0, Native Contacts) | ✅ Complete |
 | 18 | Unified Dynamic Theme System (V2) | ✅ Complete |
+| 19 | Image Editing, Stickers & Light Theme Polish | ✅ Complete |
 
 ---
 
@@ -59,6 +60,53 @@
 
 ---
 
+## Phase 19 — Image Editing, Stickers & Light Theme Polish ✅
+
+### 19a: Light Theme Brand Fix ✅
+- **AppBar & Nav Bar**: Changed `lightCard` from plain white (#FFFFFF) to soft purple (#EEEAFF).
+- **Dividers**: Deepened to #D4CFFF for better visual separation.
+- **Brand Identity**: Light theme now feels like a premium branded app.
+
+### 19b: Image Edit Preview Screen ✅
+- **New Screen**: `ImageEditPreviewScreen` — full-screen image preview before sending.
+- **ProImageEditor Integration**: Draw, text, emoji, crop, filters — all with Sawa-branded dark UI.
+- **Sticker Conversion**: On-device image processing with rounded corners (512px max, PNG with transparency).
+- **Send Flow**: Camera/Gallery → Edit Preview → Send as image or sticker.
+
+### 19c: Sticker Rendering ✅
+- **Transparent Bubbles**: Stickers render with no bubble background (floating style).
+- **Aspect Ratio**: Preserved from original image dimensions.
+- **Cache**: Remote stickers cached via `cached_network_image`.
+
+### 19d: Platform Permissions ✅
+- **Android**: Added `READ_EXTERNAL_STORAGE` (SDK ≤ 32) and `READ_MEDIA_IMAGES` (SDK 33+).
+- **iOS**: `NSPhotoLibraryUsageDescription` already present.
+
+### 19e: Theme & UX Refinement ✅
+- **Auth Flow**: `PhoneScreen` and `OtpScreen` migrated to dynamic theme (Light/Dark support).
+- **Onboarding**: Full theme support with premium branded look in Light Mode.
+- **OTP UX**: Auto-focus enabled on the first digit for faster entry.
+- **Chat AppBar**: Fixed title/subtitle contrast and avatar background for purple branded AppBar.
+- **Preview Flow**: Editor now sends immediately upon checkmark for smoother UX.
+
+---
+
+## Phase 20 — Local Sticker Storage & Picker (In Progress) 🏗️
+
+### 20a: Sticker Storage Service 🏗️
+- **Persistent Storage**: Save stickers to `app_documents/stickers/` folder.
+- **Metadata Management**: Track saved stickers using `StickerStore`.
+
+### 20b: Sticker Picker UI 🏗️
+- **Input Integration**: Add sticker icon to Chat input bar.
+- **Picker BottomSheet**: Grid view of previously created/saved stickers.
+- **Instant Send**: Tap to send from the local gallery.
+
+### 20c: "Save as Sticker" Action 🏗️
+- **Long-Press Menu**: Add option to save incoming images/stickers to the local gallery.
+
+---
+
 ## 🔀 Git Branching Workflow
 
 ### Rules
@@ -69,7 +117,8 @@
 ### Branch History
 | Branch | Phase | Status |
 |--------|-------|--------|
-| `main` | Phases 1–18 | ✅ Merged |
+| `main` | Phases 1–19 | ✅ Merged |
+| `feature/image-editing-stickers` | Phase 19 | ✅ Complete |
 | `feature/unified-theme-v2` | Phase 18 Refactor | ✅ Complete |
 | `feature/multimedia-chat` | Phase 17 | ✅ Complete |
 
@@ -80,5 +129,8 @@
 - [x] **Zero Spaghetti**: All UI components use `context.sawaColors`.
 - [x] **Theme Persistence**: Switching theme in Profile saves to disk and restores on restart.
 - [x] **Scroll Behavior**: Scrolling to top in chat works perfectly without jumps.
+- [x] **Image Edit Flow**: Camera/Gallery → Preview → Edit/Crop/Sticker → Send.
+- [x] **Sticker Rendering**: Transparent floating stickers in chat.
+- [x] **Light Theme**: AppBar/NavBar use branded purple tint.
 
-*Last updated: May 10, 2026 — Branch: main*
+*Last updated: May 11, 2026 — Branch: main*

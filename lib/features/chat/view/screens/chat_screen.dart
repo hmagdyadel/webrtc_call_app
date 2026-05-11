@@ -1,11 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:intl/intl.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -18,6 +18,7 @@ import '../../../auth/data/models/user_model.dart';
 import '../../viewmodel/message_cubit.dart';
 import '../../viewmodel/message_state.dart';
 import '../widgets/message_bubble.dart';
+import 'image_edit_preview_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -203,45 +204,41 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<String?> _cropImage(String path) async {
-    try {
-      final croppedFile = await ImageCropper().cropImage(
-        sourcePath: path,
-        compressQuality: 80,
-        uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Edit Image',
-            toolbarColor: AppColors.primary,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.original,
-            lockAspectRatio: false,
-          ),
-          IOSUiSettings(
-            title: 'Edit Image',
-          ),
-        ],
-      );
-      return croppedFile?.path;
-    } catch (e) {
-      debugPrint('Error cropping image: $e');
-      return null;
-    }
+  /// Opens the [ImageEditPreviewScreen] with a picked file, then sends
+  /// whatever the user decides (edited image or sticker).
+  Future<void> _openEditPreview(File imageFile) async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ImageEditPreviewScreen(
+          imageFile: imageFile,
+          chatId: widget.chatId,
+          currentUserId: widget.currentUserId,
+          otherUserName: _otherUserName,
+          otherUserOnline: _isOtherUserOnline,
+        ),
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    final file = result['file'] as File;
+    final isSticker = result['isSticker'] as bool;
+
+    _messageCubit.sendMediaMessage(
+      chatId: widget.chatId,
+      senderId: widget.currentUserId,
+      filePath: file.path,
+      type: isSticker ? 'sticker' : 'image',
+    );
   }
 
   Future<void> _pickCameraImage() async {
     try {
       final picker = ImagePicker();
       final image = await picker.pickImage(source: ImageSource.camera);
-      if (image != null) {
-        final croppedPath = await _cropImage(image.path);
-        if (croppedPath != null) {
-          _messageCubit.sendMediaMessage(
-            chatId: widget.chatId,
-            senderId: widget.currentUserId,
-            filePath: croppedPath,
-            type: 'image',
-          );
-        }
+      if (image != null && mounted) {
+        await _openEditPreview(File(image.path));
       }
     } catch (e) {
       debugPrint('Error picking camera image: $e');
@@ -263,16 +260,8 @@ class _ChatScreenState extends State<ChatScreen> {
             filePath: media.path,
             type: 'video',
           );
-        } else {
-          final croppedPath = await _cropImage(media.path);
-          if (croppedPath != null) {
-            _messageCubit.sendMediaMessage(
-              chatId: widget.chatId,
-              senderId: widget.currentUserId,
-              filePath: croppedPath,
-              type: 'image',
-            );
-          }
+        } else if (mounted) {
+          await _openEditPreview(File(media.path));
         }
       }
     } catch (e) {
@@ -564,18 +553,17 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   PreferredSizeWidget _buildAppBar() {
-    final colors = context.sawaColors;
     return AppBar(
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+        icon: const Icon(Icons.arrow_back_ios_new, size: 20),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Row(
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: AppColors.primary,
+            backgroundColor: Colors.white.withValues(alpha: 0.2),
             backgroundImage:
                 _otherUserAvatar.isNotEmpty ? NetworkImage(_otherUserAvatar) : null,
             child: _otherUserAvatar.isEmpty
@@ -595,8 +583,8 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Text(
                   _otherUserName.isNotEmpty ? _otherUserName : 'Loading...',
-                  style: TextStyle(
-                    color: colors.text1,
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -625,12 +613,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildSubtitle() {
-    final colors = context.sawaColors;
     if (_showAbout && _otherUserAbout.isNotEmpty) {
       return Text(
         _otherUserAbout,
         key: const ValueKey('about'),
-        style: TextStyle(color: colors.text2.withValues(alpha: 0.8), fontSize: 12),
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
         overflow: TextOverflow.ellipsis,
       );
     }
@@ -639,7 +626,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return Text(
         'Online',
         key: const ValueKey('online'),
-        style: TextStyle(color: AppColors.online.withValues(alpha: 0.9), fontSize: 12),
+        style: const TextStyle(color: AppColors.accent, fontSize: 11, fontWeight: FontWeight.bold),
         overflow: TextOverflow.ellipsis,
       );
     }
@@ -648,7 +635,7 @@ class _ChatScreenState extends State<ChatScreen> {
       return Text(
         'Last seen ${_formatLastSeen(_otherUserLastSeen!)}',
         key: const ValueKey('last_seen'),
-        style: TextStyle(color: colors.text2.withValues(alpha: 0.8), fontSize: 12),
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
         overflow: TextOverflow.ellipsis,
       );
     }

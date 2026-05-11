@@ -26,6 +26,7 @@
 - 🎨 **Unified Dynamic Theme System** — Professional `ThemeExtension` architecture supporting Dark and Light modes.
 - 💬 **Multimedia Chat** — Text, Images, Videos, Audio (with waveforms), Location, and Native Contacts.
 - 🎤 **Advanced Voice Messaging** — Real-time waveform recording, speed control (1x-2x), and seeking.
+- 🖼️ **Image Editing & Stickers** — Full editor (draw, text, emoji, crop, filters) + sticker conversion before sending.
 - 📞 **Voice & Video Calls** — WebRTC-powered high-quality calling (In Progress).
 - 🔗 **QR Code Discovery** — Scan to add contacts instantly.
 - 🗺️ **Location Sharing** — Coordinate-based sharing with native map deep linking.

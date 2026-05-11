@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../../app/router/app_router.dart';
+import '../../../app/theme/app_colors.dart';
 import '../../../core/di/injection.dart';
 import '../../../core/utils/onboarding_store.dart';
 
@@ -52,8 +53,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1E),
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -61,9 +63,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               alignment: Alignment.topRight,
               child: TextButton(
                 onPressed: _completeOnboarding,
-                child: const Text(
+                child: Text(
                   'تخطى',
-                  style: TextStyle(color: Color(0xFF6B6490), fontSize: 14),
+                  style: TextStyle(color: colors.text3, fontSize: 14),
                 ),
               ),
             ),
@@ -78,9 +80,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             SmoothPageIndicator(
               controller: _controller,
               count: _pages.length,
-              effect: const ExpandingDotsEffect(
-                activeDotColor: Color(0xFF5B4FD4),
-                dotColor: Color(0xFF2A2A4A),
+              effect: ExpandingDotsEffect(
+                activeDotColor: AppColors.primary,
+                dotColor: colors.divider,
                 dotHeight: 8,
                 dotWidth: 8,
                 expansionFactor: 3.5,
@@ -105,7 +107,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5B4FD4),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -146,8 +148,8 @@ class _OnboardingPage extends StatelessWidget {
           const SizedBox(height: 36),
           Text(
             data.titleAr,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: context.sawaColors.text1,
               fontSize: 24,
               fontWeight: FontWeight.w700,
               height: 1.3,
@@ -159,7 +161,7 @@ class _OnboardingPage extends StatelessWidget {
           Text(
             data.titleEn,
             style: const TextStyle(
-              color: Color(0xFF00C8A0),
+              color: AppColors.accent,
               fontSize: 14,
               fontWeight: FontWeight.w400,
             ),
@@ -168,8 +170,8 @@ class _OnboardingPage extends StatelessWidget {
           const SizedBox(height: 18),
           Text(
             data.subtitle,
-            style: const TextStyle(
-              color: Color(0xFFB0AADD),
+            style: TextStyle(
+              color: context.sawaColors.text2,
               fontSize: 15,
               height: 1.7,
             ),

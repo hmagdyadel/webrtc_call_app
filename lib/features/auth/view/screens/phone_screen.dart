@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
+import '../../../../app/theme/app_colors.dart';
 import '../../viewmodel/auth_cubit.dart';
 
 class PhoneScreen extends StatefulWidget {
@@ -57,14 +58,16 @@ class _PhoneScreenState extends State<PhoneScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: colors.card,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Enter your phone',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: colors.text1),
         ),
         centerTitle: true,
       ),
@@ -74,23 +77,23 @@ class _PhoneScreenState extends State<PhoneScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 40),
-            const Text(
+            Text(
               'Your phone number',
               style: TextStyle(
-                color: Colors.white,
+                color: colors.text1,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'We will send you a verification code',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              style: TextStyle(color: colors.text3, fontSize: 14),
             ),
             const SizedBox(height: 40),
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFF16213E),
+                color: colors.input,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -102,15 +105,15 @@ class _PhoneScreenState extends State<PhoneScreen> {
                         horizontal: 16,
                         vertical: 18,
                       ),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          right: BorderSide(color: Colors.grey, width: 0.5),
+                          right: BorderSide(color: colors.divider, width: 0.5),
                         ),
                       ),
                       child: Text(
                         _countryCode,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: colors.text1,
                           fontSize: 16,
                         ),
                       ),
@@ -120,12 +123,12 @@ class _PhoneScreenState extends State<PhoneScreen> {
                     child: TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: colors.text1),
+                      decoration: InputDecoration(
                         hintText: '10 digit number',
-                        hintStyle: TextStyle(color: Colors.grey),
+                        hintStyle: TextStyle(color: colors.text3),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
+                        contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 18,
                         ),
@@ -142,7 +145,7 @@ class _PhoneScreenState extends State<PhoneScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _onContinue,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0F3460),
+                  backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -165,9 +168,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
   }
 
   void _showCountryPicker() {
+    final colors = context.sawaColors;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF16213E),
+      backgroundColor: colors.card,
       builder: (_) => ListView(
         children: [
           _countryTile('Egypt', '+20'),
@@ -181,9 +185,10 @@ class _PhoneScreenState extends State<PhoneScreen> {
   }
 
   Widget _countryTile(String name, String code) {
+    final colors = context.sawaColors;
     return ListTile(
-      title: Text(name, style: const TextStyle(color: Colors.white)),
-      trailing: Text(code, style: const TextStyle(color: Colors.grey)),
+      title: Text(name, style: TextStyle(color: colors.text1)),
+      trailing: Text(code, style: TextStyle(color: colors.text3)),
       onTap: () {
         setState(() => _countryCode = code);
         context.pop();
