@@ -22,7 +22,12 @@ import '../../viewmodel/message_cubit.dart';
 import '../../viewmodel/message_state.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/sticker_picker.dart';
+import 'contact_profile_screen.dart';
 import 'image_edit_preview_screen.dart';
+import '../../../stories/viewmodel/story_cubit.dart';
+import '../../../stories/viewmodel/story_state.dart';
+import '../../../stories/data/models/story_model.dart';
+import '../../../stories/view/widgets/story_ring_avatar.dart';
 
 class ChatScreen extends StatefulWidget {
   final String chatId;
@@ -636,21 +641,33 @@ class _ChatScreenState extends State<ChatScreen> {
         icon: const Icon(Icons.arrow_back_ios_new, size: 20),
         onPressed: () => Navigator.of(context).pop(),
       ),
-      title: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            backgroundImage:
-                _otherUserAvatar.isNotEmpty ? NetworkImage(_otherUserAvatar) : null,
-            child: _otherUserAvatar.isEmpty
-                ? (_otherUserName.isNotEmpty && !RegExp(r'^[0-9+]+$').hasMatch(_otherUserName)
-                    ? Text(
-                        _otherUserName[0].toUpperCase(),
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                      )
-                    : const Icon(Icons.person, color: Colors.white, size: 20))
-                : null,
+      title: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ContactProfileScreen(userId: widget.otherUserId),
+            ),
+          );
+        },
+        child: Row(
+          children: [
+          BlocBuilder<StoryCubit, StoryState>(
+            builder: (context, storyState) {
+              List<StoryModel> userStories = [];
+              storyState.whenOrNull(
+                loaded: (stories, _, _) {
+                  userStories = stories.where((s) => s.userId == widget.otherUserId).toList();
+                },
+              );
+              return StoryRingAvatar(
+                avatarUrl: _otherUserAvatar,
+                userName: _otherUserName,
+                stories: userStories,
+                currentUserId: widget.currentUserId,
+                radius: 20,
+              );
+            },
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -675,6 +692,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
         ],
+      ),
       ),
       actions: [
         IconButton(

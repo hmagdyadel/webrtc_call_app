@@ -272,73 +272,79 @@ class _StoryViewerScreenState extends State<StoryViewerScreen> {
               ),
             ),
 
-            // ── Caption overlay ────────────────────────────────
-            if (story.text != null &&
-                story.text!.isNotEmpty &&
-                story.type != StoryMediaType.text) // Text stories render text as main content
-              Positioned(
-                bottom: 80,
-                left: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    story.text!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ),
-
-            // ── Reply bar (for other users' stories) ───────────
-            if (story.userId != widget.currentUserId)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    12,
-                    16,
-                    MediaQuery.of(context).padding.bottom + 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => _replyToStory(story),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.white38),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Text(
-                              'Reply to ${story.userName}...',
-                              style: const TextStyle(
-                                color: Colors.white60,
-                                fontSize: 14,
-                              ),
-                            ),
+            // ── Bottom Section (Caption + Reply Bar) ───────────
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Caption
+                  if (story.text != null &&
+                      story.text!.isNotEmpty &&
+                      story.type != StoryMediaType.text)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          story.text!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            height: 1.4,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                    
+                  // Reply Bar
+                  if (story.userId != widget.currentUserId)
+                    Container(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        8,
+                        16,
+                        MediaQuery.of(context).padding.bottom + 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => _replyToStory(story),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.white38),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: Text(
+                                  'Reply to ${story.userName}...',
+                                  style: const TextStyle(
+                                    color: Colors.white60,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 12),
+                ],
               ),
+            ),
           ],
         ),
       ),

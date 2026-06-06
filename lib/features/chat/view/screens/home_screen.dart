@@ -29,19 +29,16 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0; 
   late final ChatCubit _chatCubit;
-  late final StoryCubit _storyCubit;
 
   @override
   void initState() {
     super.initState();
     _chatCubit = getIt<ChatCubit>()..loadChats(widget.userId);
-    _storyCubit = getIt<StoryCubit>()..loadStories();
   }
 
   @override
   void dispose() {
     _chatCubit.close();
-    _storyCubit.close();
     super.dispose();
   }
 
@@ -60,7 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _chatCubit),
-        BlocProvider.value(value: _storyCubit),
       ],
       child: Scaffold(
         backgroundColor: colors.background,

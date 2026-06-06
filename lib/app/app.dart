@@ -6,6 +6,7 @@ import '../core/utils/onboarding_store.dart';
 import '../core/services/presence_service.dart';
 import '../core/theme/theme_cubit.dart';
 import '../features/auth/viewmodel/auth_cubit.dart';
+import '../features/stories/viewmodel/story_cubit.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -21,6 +22,9 @@ class App extends StatelessWidget {
         ),
         BlocProvider<ThemeCubit>(
           create: (_) => getIt<ThemeCubit>(),
+        ),
+        BlocProvider<StoryCubit>(
+          create: (_) => getIt<StoryCubit>()..loadStories(),
         ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(
