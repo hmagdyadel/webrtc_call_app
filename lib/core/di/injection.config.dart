@@ -34,6 +34,7 @@ import 'package:sawa/features/contacts/data/repositories/contacts_repository.dar
     as _i765;
 import 'package:sawa/features/contacts/data/sources/contacts_remote_source.dart'
     as _i93;
+import 'package:sawa/features/contacts/viewmodel/contacts_cubit.dart' as _i860;
 import 'package:sawa/features/stories/viewmodel/story_cubit.dart' as _i1055;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
@@ -81,6 +82,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i697.ChatRepository>(
       () => _i697.ChatRepositoryImpl(gh<_i112.ChatRemoteSource>()),
+    );
+    gh.factory<_i860.ContactsCubit>(
+      () => _i860.ContactsCubit(gh<_i765.ContactsRepository>()),
     );
     gh.lazySingleton<_i804.AuthCubit>(
       () => _i804.AuthCubit(gh<_i880.AuthRepository>()),

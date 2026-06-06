@@ -6,8 +6,6 @@ import '../../../auth/data/models/user_model.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/di/injection.dart';
-import '../../../auth/viewmodel/auth_cubit.dart';
-import '../../../auth/viewmodel/auth_state.dart';
 import '../../data/models/chat_model.dart';
 import '../../viewmodel/chat_cubit.dart';
 import '../../viewmodel/chat_state.dart';
@@ -18,6 +16,10 @@ import '../../../stories/view/widgets/story_ring_avatar.dart';
 import '../../../stories/data/models/story_model.dart';
 import '../../../stories/viewmodel/story_state.dart';
 import '../../../../core/widgets/sawa_empty_state.dart';
+import '../../../contacts/viewmodel/contacts_cubit.dart';
+import '../../../contacts/view/screens/contacts_tab.dart';
+import '../../../settings/view/screens/me_tab.dart';
+
 class HomeScreen extends StatefulWidget {
   final String userId;
   const HomeScreen({super.key, required this.userId});
@@ -29,16 +31,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0; 
   late final ChatCubit _chatCubit;
+  late final ContactsCubit _contactsCubit;
 
   @override
   void initState() {
     super.initState();
     _chatCubit = getIt<ChatCubit>()..loadChats(widget.userId);
+    _contactsCubit = getIt<ContactsCubit>();
   }
 
   @override
   void dispose() {
     _chatCubit.close();
+    _contactsCubit.close();
     super.dispose();
   }
 
@@ -46,8 +51,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _ChatsTab(userId: widget.userId),
     StoriesTab(userId: widget.userId),
     const _CallsTab(),
-    const _ContactsTab(),
-    const _MeTab(),
+    ContactsTab(userId: widget.userId),
+    const MeTab(),
   ];
 
   @override
@@ -57,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _chatCubit),
+        BlocProvider.value(value: _contactsCubit),
       ],
       child: Scaffold(
         backgroundColor: colors.background,
@@ -319,95 +325,6 @@ class _CallsTab extends StatelessWidget {
           actionLabel: 'Start Call',
           onAction: () {},
         ),
-      ),
-    );
-  }
-}
-
-class _ContactsTab extends StatelessWidget {
-  const _ContactsTab();
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.sawaColors;
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(title: const Text('Contacts')),
-      body: Center(
-        child: SawaEmptyState(
-          icon: Icons.contacts_outlined,
-          title: 'No contacts found',
-          subtitle: 'Add contacts to start chatting on Sawa',
-          actionLabel: 'Add Contact',
-          onAction: () {},
-        ),
-      ),
-    );
-  }
-}
-
-class _MeTab extends StatelessWidget {
-  const _MeTab();
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.sawaColors;
-    return BlocBuilder<AuthCubit, AuthState>(
-      builder: (context, state) {
-        String displayName = 'My Profile';
-        String? avatarUrl;
-        state.whenOrNull(authenticated: (user) {
-          displayName = user.name.isNotEmpty ? user.name : 'User';
-          avatarUrl = user.avatarUrl.isNotEmpty ? user.avatarUrl : null;
-        });
-
-        return Scaffold(
-          backgroundColor: colors.background,
-          appBar: AppBar(title: const Text('Me')),
-          body: Column(
-            children: [
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.primary,
-                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-                  child: avatarUrl == null ? const Icon(Icons.person, color: Colors.white) : null,
-                ),
-                title: Text(displayName, style: TextStyle(color: colors.text1)),
-                subtitle: Text('Tap to edit profile', style: TextStyle(color: colors.text2)),
-                trailing: Icon(Icons.chevron_right, color: colors.text3),
-                onTap: () => context.push(AppRoutePaths.profile),
-              ),
-              ListTile(
-                leading: Icon(Icons.qr_code, color: colors.text1),
-                title: Text('My QR Code', style: TextStyle(color: colors.text1)),
-                onTap: () => context.push(AppRoutePaths.myQr),
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text('Sign Out', style: TextStyle(color: Colors.red)),
-                onTap: () => _showSignOut(context),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showSignOut(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<AuthCubit>().signOut();
-            },
-            child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
   }
