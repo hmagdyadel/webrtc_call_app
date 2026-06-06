@@ -16,12 +16,16 @@ class MessageBubble extends StatelessWidget {
   final MessageModel message;
   final bool isSent;
   final double? uploadProgress;
+  final String? searchQuery;
+  final bool? isHighlighted;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isSent,
     this.uploadProgress,
+    this.searchQuery,
+    this.isHighlighted,
   });
 
   @override
@@ -424,6 +428,41 @@ class MessageBubble extends StatelessWidget {
         );
       case 'text':
       default:
+        if (searchQuery != null && searchQuery!.isNotEmpty && message.text.toLowerCase().contains(searchQuery!.toLowerCase())) {
+          final textLower = message.text.toLowerCase();
+          final queryLower = searchQuery!.toLowerCase();
+          
+          List<TextSpan> spans = [];
+          int start = 0;
+          int indexOfMatch = textLower.indexOf(queryLower, start);
+          
+          while (indexOfMatch != -1) {
+            if (indexOfMatch > start) {
+              spans.add(TextSpan(text: message.text.substring(start, indexOfMatch)));
+            }
+            spans.add(TextSpan(
+              text: message.text.substring(indexOfMatch, indexOfMatch + queryLower.length),
+              style: TextStyle(
+                backgroundColor: isHighlighted == true ? AppColors.accent.withValues(alpha: 0.7) : AppColors.accent.withValues(alpha: 0.3),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ));
+            start = indexOfMatch + queryLower.length;
+            indexOfMatch = textLower.indexOf(queryLower, start);
+          }
+          if (start < message.text.length) {
+            spans.add(TextSpan(text: message.text.substring(start)));
+          }
+
+          return RichText(
+            text: TextSpan(
+              style: TextStyle(color: textColor, fontSize: 15, height: 1.4),
+              children: spans,
+            ),
+          );
+        }
+
         return Text(
           message.text,
           style: TextStyle(

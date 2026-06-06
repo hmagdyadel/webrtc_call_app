@@ -18,6 +18,8 @@ import '../../../../app/theme/app_colors.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/sawa_empty_state.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../../auth/viewmodel/auth_cubit.dart';
+import '../../../auth/viewmodel/auth_state.dart';
 import '../../viewmodel/message_cubit.dart';
 import '../../viewmodel/message_state.dart';
 import '../widgets/message_bubble.dart';
@@ -58,6 +60,66 @@ class _ChatScreenState extends State<ChatScreen> {
   
   Timer? _toggleTimer;
   bool _showAbout = true;
+  
+  bool _isSearching = false;
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
+  final List<int> _matchIndices = [];
+  int _currentMatchIndex = 0;
+  final Map<String, GlobalKey> _messageKeys = {};
+
+  GlobalKey _getKey(String id) {
+    if (!_messageKeys.containsKey(id)) {
+      _messageKeys[id] = GlobalKey();
+    }
+    return _messageKeys[id]!;
+  }
+
+  void _updateSearchMatches() {
+    _matchIndices.clear();
+    _currentMatchIndex = 0;
+    if (_searchQuery.isEmpty) return;
+
+    final state = _messageCubit.state;
+    state.whenOrNull(
+      loaded: (messages, localMessages, _) {
+        final allMessages = [...messages, ...localMessages];
+        allMessages.sort((a, b) {
+          if (a.timestamp == null && b.timestamp == null) return 0;
+          if (a.timestamp == null) return -1;
+          if (b.timestamp == null) return 1;
+          return b.timestamp!.compareTo(a.timestamp!);
+        });
+        for (int i = 0; i < allMessages.length; i++) {
+          final m = allMessages[i];
+          if (m.type == 'text' && m.text.toLowerCase().contains(_searchQuery)) {
+            _matchIndices.add(i);
+          }
+        }
+      },
+    );
+  }
+
+  void _scrollToMatch() {
+    if (_matchIndices.isEmpty) return;
+    final state = _messageCubit.state;
+    state.whenOrNull(
+      loaded: (messages, localMessages, _) {
+        final allMessages = [...messages, ...localMessages];
+        allMessages.sort((a, b) {
+          if (a.timestamp == null && b.timestamp == null) return 0;
+          if (a.timestamp == null) return -1;
+          if (b.timestamp == null) return 1;
+          return b.timestamp!.compareTo(a.timestamp!);
+        });
+        final msg = allMessages[_matchIndices[_currentMatchIndex]];
+        final key = _messageKeys[msg.id];
+        if (key != null && key.currentContext != null) {
+          Scrollable.ensureVisible(key.currentContext!, alignment: 0.5, duration: const Duration(milliseconds: 300));
+        }
+      },
+    );
+  }
 
   bool _isTextNotEmpty = false;
   bool _isRecording = false;
@@ -577,23 +639,48 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = context.sawaColors;
-    return PopScope(
-      canPop: !_showEmoji,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        if (_showEmoji) {
-          setState(() => _showEmoji = false);
-        }
+    
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        final currentUser = authState.whenOrNull(authenticated: (u) => u);
+        final isBlocked = currentUser?.blockedUsers.contains(widget.otherUserId) ?? false;
+        
+        return PopScope(
+          canPop: !_showEmoji,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            if (_showEmoji) {
+              setState(() => _showEmoji = false);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: colors.background,
+            appBar: _buildAppBar(isBlocked),
+            body: Column(
+              children: [
+                Expanded(child: _buildMessageList()),
+                if (isBlocked)
+                  _buildBlockedBanner(colors)
+                else
+                  _buildInputBar(),
+                if (_showEmoji && !isBlocked) _buildEmojiPicker(colors),
+              ],
+            ),
+          ),
+        );
       },
-      child: Scaffold(
-        backgroundColor: colors.background,
-        appBar: _buildAppBar(),
-        body: Column(
-          children: [
-            Expanded(child: _buildMessageList()),
-            _buildInputBar(),
-            if (_showEmoji) _buildEmojiPicker(colors),
-          ],
+    );
+  }
+
+  Widget _buildBlockedBanner(SawaColors colors) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(top: 16, bottom: MediaQuery.of(context).padding.bottom + 16),
+      color: colors.surface,
+      child: Center(
+        child: Text(
+          'You blocked this contact. Tap their profile to unblock.',
+          style: TextStyle(color: colors.text2, fontSize: 13),
         ),
       ),
     );
@@ -634,7 +721,95 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(bool isBlocked) {
+    if (_isSearching) {
+      return AppBar(
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            setState(() {
+              _isSearching = false;
+              _searchQuery = '';
+              _searchController.clear();
+              _matchIndices.clear();
+            });
+          },
+        ),
+        title: Container(
+          height: 38,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: TextField(
+            controller: _searchController,
+            autofocus: true,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
+            decoration: InputDecoration(
+              hintText: 'Search...',
+              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              isDense: true,
+            ),
+            onChanged: (val) {
+              setState(() {
+                _searchQuery = val.toLowerCase();
+                _updateSearchMatches();
+                if (_matchIndices.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToMatch());
+                }
+              });
+            },
+          ),
+        ),
+        actions: [
+          if (_matchIndices.isNotEmpty) ...[
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Text(
+                  '${_currentMatchIndex + 1} of ${_matchIndices.length}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.keyboard_arrow_up, color: Colors.white),
+              onPressed: () {
+                if (_currentMatchIndex < _matchIndices.length - 1) {
+                  setState(() => _currentMatchIndex++);
+                  _scrollToMatch();
+                }
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+              onPressed: () {
+                if (_currentMatchIndex > 0) {
+                  setState(() => _currentMatchIndex--);
+                  _scrollToMatch();
+                }
+              },
+            ),
+          ] else if (_searchQuery.isNotEmpty) ...[
+            IconButton(
+              icon: const Icon(Icons.clear, color: Colors.white),
+              onPressed: () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                  _matchIndices.clear();
+                });
+              },
+            ),
+          ],
+          const SizedBox(width: 8),
+        ],
+      );
+    }
+
     return AppBar(
       elevation: 0,
       leading: IconButton(
@@ -646,9 +821,16 @@ class _ChatScreenState extends State<ChatScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ContactProfileScreen(userId: widget.otherUserId),
+              builder: (_) => ContactProfileScreen(
+                userId: widget.otherUserId,
+                chatId: widget.chatId,
+              ),
             ),
-          );
+          ).then((startSearch) {
+            if (startSearch == true) {
+              setState(() => _isSearching = true);
+            }
+          });
         },
         child: Row(
           children: [
@@ -686,7 +868,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
-                  child: _buildSubtitle(),
+                  child: _buildSubtitle(isBlocked),
                 ),
               ],
             ),
@@ -695,6 +877,14 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       ),
       actions: [
+        IconButton(
+          icon: const Icon(Icons.search, color: AppColors.accent),
+          onPressed: () {
+            setState(() {
+              _isSearching = true;
+            });
+          },
+        ),
         IconButton(
           icon: const Icon(Icons.call_outlined, color: AppColors.accent),
           onPressed: () {},
@@ -707,7 +897,11 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildSubtitle() {
+  Widget _buildSubtitle(bool isBlocked) {
+    if (isBlocked) {
+      return const SizedBox.shrink(key: ValueKey('empty'));
+    }
+
     if (_showAbout && _otherUserAbout.isNotEmpty) {
       return Text(
         _otherUserAbout,
@@ -763,7 +957,8 @@ class _ChatScreenState extends State<ChatScreen> {
             child: CircularProgressIndicator(color: AppColors.primary),
           ),
           loaded: (messages, localMessages, uploadProgress) {
-            final allMessages = [...messages, ...localMessages];
+            var allMessages = [...messages, ...localMessages];
+
             // Sort newest first for reverse list
             allMessages.sort((a, b) {
               if (a.timestamp == null && b.timestamp == null) return 0;
@@ -778,6 +973,30 @@ class _ChatScreenState extends State<ChatScreen> {
                   icon: Icons.mark_chat_unread_outlined,
                   title: 'Say hello! 👋',
                   subtitle: 'Send your first message to start the conversation',
+                ),
+              );
+            }
+
+            if (_isSearching) {
+              return SingleChildScrollView(
+                reverse: true, // New messages appear at the bottom
+                controller: _scrollController,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: allMessages.reversed.map((msg) {
+                    final isHighlighted = _searchQuery.isNotEmpty && 
+                                          _matchIndices.isNotEmpty && 
+                                          allMessages[_matchIndices[_currentMatchIndex]].id == msg.id;
+                    return MessageBubble(
+                      key: _getKey(msg.id),
+                      message: msg,
+                      isSent: msg.senderId == widget.currentUserId,
+                      uploadProgress: uploadProgress[msg.id],
+                      searchQuery: _searchQuery,
+                      isHighlighted: isHighlighted,
+                    );
+                  }).toList(),
                 ),
               );
             }

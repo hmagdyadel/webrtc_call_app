@@ -17,6 +17,8 @@ abstract class UserModel with _$UserModel {
     @Default(false) bool isOnline,
     @TimestampConverter() @JsonKey(name: 'last_seen') DateTime? lastSeen,
     @TimestampConverter() @JsonKey(name: 'created_at') DateTime? createdAt,
+    @Default([]) List<String> blockedUsers,
+    @Default([]) List<String> mutedUsers,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>

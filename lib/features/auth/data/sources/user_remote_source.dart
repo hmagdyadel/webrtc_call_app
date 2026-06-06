@@ -7,6 +7,10 @@ abstract class UserRemoteSource {
   Future<UserModel?> getUser(String uid);
   Future<bool> userExists(String uid);
   Future<void> updatePresence(String uid, bool isOnline);
+  Future<void> blockUser(String uid, String targetUid);
+  Future<void> unblockUser(String uid, String targetUid);
+  Future<void> muteUser(String uid, String targetUid);
+  Future<void> unmuteUser(String uid, String targetUid);
 }
 
 @LazySingleton(as: UserRemoteSource)
@@ -41,6 +45,34 @@ class UserRemoteSourceImpl implements UserRemoteSource {
     await _firestore.collection(_collection).doc(uid).update({
       'isOnline': isOnline,
       'last_seen': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
+  Future<void> blockUser(String uid, String targetUid) async {
+    await _firestore.collection(_collection).doc(uid).update({
+      'blockedUsers': FieldValue.arrayUnion([targetUid]),
+    });
+  }
+
+  @override
+  Future<void> unblockUser(String uid, String targetUid) async {
+    await _firestore.collection(_collection).doc(uid).update({
+      'blockedUsers': FieldValue.arrayRemove([targetUid]),
+    });
+  }
+
+  @override
+  Future<void> muteUser(String uid, String targetUid) async {
+    await _firestore.collection(_collection).doc(uid).update({
+      'mutedUsers': FieldValue.arrayUnion([targetUid]),
+    });
+  }
+
+  @override
+  Future<void> unmuteUser(String uid, String targetUid) async {
+    await _firestore.collection(_collection).doc(uid).update({
+      'mutedUsers': FieldValue.arrayRemove([targetUid]),
     });
   }
 }

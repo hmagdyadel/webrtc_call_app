@@ -43,6 +43,13 @@ exports.sendChatNotification = functions.firestore
       return null;
     }
 
+    // Check if the receiver has muted the sender
+    const mutedUsers = receiverDoc.data().mutedUsers || [];
+    if (mutedUsers.includes(senderId)) {
+      console.log(`User ${receiverId} has muted sender ${senderId}. Skipping notification.`);
+      return null;
+    }
+
     // Construct the notification payload
     const payload = {
       token: fcmToken,

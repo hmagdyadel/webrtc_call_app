@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UserModel {
 
- String get id; String get phone; String get name; String get avatarUrl; String get about; String get birthdate; String get fcmToken; bool get isOnline;@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? get lastSeen;@TimestampConverter()@JsonKey(name: 'created_at') DateTime? get createdAt;
+ String get id; String get phone; String get name; String get avatarUrl; String get about; String get birthdate; String get fcmToken; bool get isOnline;@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? get lastSeen;@TimestampConverter()@JsonKey(name: 'created_at') DateTime? get createdAt; List<String> get blockedUsers; List<String> get mutedUsers;
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $UserModelCopyWith<UserModel> get copyWith => _$UserModelCopyWithImpl<UserModel>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.birthdate, birthdate) || other.birthdate == birthdate)&&(identical(other.fcmToken, fcmToken) || other.fcmToken == fcmToken)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.birthdate, birthdate) || other.birthdate == birthdate)&&(identical(other.fcmToken, fcmToken) || other.fcmToken == fcmToken)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.blockedUsers, blockedUsers)&&const DeepCollectionEquality().equals(other.mutedUsers, mutedUsers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,phone,name,avatarUrl,about,birthdate,fcmToken,isOnline,lastSeen,createdAt);
+int get hashCode => Object.hash(runtimeType,id,phone,name,avatarUrl,about,birthdate,fcmToken,isOnline,lastSeen,createdAt,const DeepCollectionEquality().hash(blockedUsers),const DeepCollectionEquality().hash(mutedUsers));
 
 @override
 String toString() {
-  return 'UserModel(id: $id, phone: $phone, name: $name, avatarUrl: $avatarUrl, about: $about, birthdate: $birthdate, fcmToken: $fcmToken, isOnline: $isOnline, lastSeen: $lastSeen, createdAt: $createdAt)';
+  return 'UserModel(id: $id, phone: $phone, name: $name, avatarUrl: $avatarUrl, about: $about, birthdate: $birthdate, fcmToken: $fcmToken, isOnline: $isOnline, lastSeen: $lastSeen, createdAt: $createdAt, blockedUsers: $blockedUsers, mutedUsers: $mutedUsers)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $UserModelCopyWith<$Res>  {
   factory $UserModelCopyWith(UserModel value, $Res Function(UserModel) _then) = _$UserModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String phone, String name, String avatarUrl, String about, String birthdate, String fcmToken, bool isOnline,@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? lastSeen,@TimestampConverter()@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String phone, String name, String avatarUrl, String about, String birthdate, String fcmToken, bool isOnline,@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? lastSeen,@TimestampConverter()@JsonKey(name: 'created_at') DateTime? createdAt, List<String> blockedUsers, List<String> mutedUsers
 });
 
 
@@ -65,7 +65,7 @@ class _$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? phone = null,Object? name = null,Object? avatarUrl = null,Object? about = null,Object? birthdate = null,Object? fcmToken = null,Object? isOnline = null,Object? lastSeen = freezed,Object? createdAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? phone = null,Object? name = null,Object? avatarUrl = null,Object? about = null,Object? birthdate = null,Object? fcmToken = null,Object? isOnline = null,Object? lastSeen = freezed,Object? createdAt = freezed,Object? blockedUsers = null,Object? mutedUsers = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
@@ -77,7 +77,9 @@ as String,fcmToken: null == fcmToken ? _self.fcmToken : fcmToken // ignore: cast
 as String,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
 as bool,lastSeen: freezed == lastSeen ? _self.lastSeen : lastSeen // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,blockedUsers: null == blockedUsers ? _self.blockedUsers : blockedUsers // ignore: cast_nullable_to_non_nullable
+as List<String>,mutedUsers: null == mutedUsers ? _self.mutedUsers : mutedUsers // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -162,10 +164,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  String fcmToken,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  String fcmToken,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt,  List<String> blockedUsers,  List<String> mutedUsers)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.fcmToken,_that.isOnline,_that.lastSeen,_that.createdAt);case _:
+return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.fcmToken,_that.isOnline,_that.lastSeen,_that.createdAt,_that.blockedUsers,_that.mutedUsers);case _:
   return orElse();
 
 }
@@ -183,10 +185,10 @@ return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  String fcmToken,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  String fcmToken,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt,  List<String> blockedUsers,  List<String> mutedUsers)  $default,) {final _that = this;
 switch (_that) {
 case _UserModel():
-return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.fcmToken,_that.isOnline,_that.lastSeen,_that.createdAt);case _:
+return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.fcmToken,_that.isOnline,_that.lastSeen,_that.createdAt,_that.blockedUsers,_that.mutedUsers);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +205,10 @@ return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  String fcmToken,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String phone,  String name,  String avatarUrl,  String about,  String birthdate,  String fcmToken,  bool isOnline, @TimestampConverter()@JsonKey(name: 'last_seen')  DateTime? lastSeen, @TimestampConverter()@JsonKey(name: 'created_at')  DateTime? createdAt,  List<String> blockedUsers,  List<String> mutedUsers)?  $default,) {final _that = this;
 switch (_that) {
 case _UserModel() when $default != null:
-return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.fcmToken,_that.isOnline,_that.lastSeen,_that.createdAt);case _:
+return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_that.birthdate,_that.fcmToken,_that.isOnline,_that.lastSeen,_that.createdAt,_that.blockedUsers,_that.mutedUsers);case _:
   return null;
 
 }
@@ -218,7 +220,7 @@ return $default(_that.id,_that.phone,_that.name,_that.avatarUrl,_that.about,_tha
 @JsonSerializable()
 
 class _UserModel implements UserModel {
-  const _UserModel({required this.id, required this.phone, this.name = '', this.avatarUrl = '', this.about = '', this.birthdate = '', this.fcmToken = '', this.isOnline = false, @TimestampConverter()@JsonKey(name: 'last_seen') this.lastSeen, @TimestampConverter()@JsonKey(name: 'created_at') this.createdAt});
+  const _UserModel({required this.id, required this.phone, this.name = '', this.avatarUrl = '', this.about = '', this.birthdate = '', this.fcmToken = '', this.isOnline = false, @TimestampConverter()@JsonKey(name: 'last_seen') this.lastSeen, @TimestampConverter()@JsonKey(name: 'created_at') this.createdAt, final  List<String> blockedUsers = const [], final  List<String> mutedUsers = const []}): _blockedUsers = blockedUsers,_mutedUsers = mutedUsers;
   factory _UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
 
 @override final  String id;
@@ -231,6 +233,20 @@ class _UserModel implements UserModel {
 @override@JsonKey() final  bool isOnline;
 @override@TimestampConverter()@JsonKey(name: 'last_seen') final  DateTime? lastSeen;
 @override@TimestampConverter()@JsonKey(name: 'created_at') final  DateTime? createdAt;
+ final  List<String> _blockedUsers;
+@override@JsonKey() List<String> get blockedUsers {
+  if (_blockedUsers is EqualUnmodifiableListView) return _blockedUsers;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_blockedUsers);
+}
+
+ final  List<String> _mutedUsers;
+@override@JsonKey() List<String> get mutedUsers {
+  if (_mutedUsers is EqualUnmodifiableListView) return _mutedUsers;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_mutedUsers);
+}
+
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
@@ -245,16 +261,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.birthdate, birthdate) || other.birthdate == birthdate)&&(identical(other.fcmToken, fcmToken) || other.fcmToken == fcmToken)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserModel&&(identical(other.id, id) || other.id == id)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.name, name) || other.name == name)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.about, about) || other.about == about)&&(identical(other.birthdate, birthdate) || other.birthdate == birthdate)&&(identical(other.fcmToken, fcmToken) || other.fcmToken == fcmToken)&&(identical(other.isOnline, isOnline) || other.isOnline == isOnline)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._blockedUsers, _blockedUsers)&&const DeepCollectionEquality().equals(other._mutedUsers, _mutedUsers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,phone,name,avatarUrl,about,birthdate,fcmToken,isOnline,lastSeen,createdAt);
+int get hashCode => Object.hash(runtimeType,id,phone,name,avatarUrl,about,birthdate,fcmToken,isOnline,lastSeen,createdAt,const DeepCollectionEquality().hash(_blockedUsers),const DeepCollectionEquality().hash(_mutedUsers));
 
 @override
 String toString() {
-  return 'UserModel(id: $id, phone: $phone, name: $name, avatarUrl: $avatarUrl, about: $about, birthdate: $birthdate, fcmToken: $fcmToken, isOnline: $isOnline, lastSeen: $lastSeen, createdAt: $createdAt)';
+  return 'UserModel(id: $id, phone: $phone, name: $name, avatarUrl: $avatarUrl, about: $about, birthdate: $birthdate, fcmToken: $fcmToken, isOnline: $isOnline, lastSeen: $lastSeen, createdAt: $createdAt, blockedUsers: $blockedUsers, mutedUsers: $mutedUsers)';
 }
 
 
@@ -265,7 +281,7 @@ abstract mixin class _$UserModelCopyWith<$Res> implements $UserModelCopyWith<$Re
   factory _$UserModelCopyWith(_UserModel value, $Res Function(_UserModel) _then) = __$UserModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String phone, String name, String avatarUrl, String about, String birthdate, String fcmToken, bool isOnline,@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? lastSeen,@TimestampConverter()@JsonKey(name: 'created_at') DateTime? createdAt
+ String id, String phone, String name, String avatarUrl, String about, String birthdate, String fcmToken, bool isOnline,@TimestampConverter()@JsonKey(name: 'last_seen') DateTime? lastSeen,@TimestampConverter()@JsonKey(name: 'created_at') DateTime? createdAt, List<String> blockedUsers, List<String> mutedUsers
 });
 
 
@@ -282,7 +298,7 @@ class __$UserModelCopyWithImpl<$Res>
 
 /// Create a copy of UserModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? phone = null,Object? name = null,Object? avatarUrl = null,Object? about = null,Object? birthdate = null,Object? fcmToken = null,Object? isOnline = null,Object? lastSeen = freezed,Object? createdAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? phone = null,Object? name = null,Object? avatarUrl = null,Object? about = null,Object? birthdate = null,Object? fcmToken = null,Object? isOnline = null,Object? lastSeen = freezed,Object? createdAt = freezed,Object? blockedUsers = null,Object? mutedUsers = null,}) {
   return _then(_UserModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,phone: null == phone ? _self.phone : phone // ignore: cast_nullable_to_non_nullable
@@ -294,7 +310,9 @@ as String,fcmToken: null == fcmToken ? _self.fcmToken : fcmToken // ignore: cast
 as String,isOnline: null == isOnline ? _self.isOnline : isOnline // ignore: cast_nullable_to_non_nullable
 as bool,lastSeen: freezed == lastSeen ? _self.lastSeen : lastSeen // ignore: cast_nullable_to_non_nullable
 as DateTime?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,blockedUsers: null == blockedUsers ? _self._blockedUsers : blockedUsers // ignore: cast_nullable_to_non_nullable
+as List<String>,mutedUsers: null == mutedUsers ? _self._mutedUsers : mutedUsers // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

@@ -27,6 +27,10 @@ abstract class AuthRepository {
     File? imageFile,
   });
   Future<void> updatePresence(bool isOnline);
+  Future<void> blockUser(String targetUid);
+  Future<void> unblockUser(String targetUid);
+  Future<void> muteUser(String targetUid);
+  Future<void> unmuteUser(String targetUid);
 }
 
 @LazySingleton(as: AuthRepository)
@@ -146,6 +150,38 @@ class AuthRepositoryImpl implements AuthRepository {
       } catch (_) {
         // Ignore presence update errors (e.g. if document doesn't exist yet)
       }
+    }
+  }
+
+  @override
+  Future<void> blockUser(String targetUid) async {
+    final firebaseUser = _authSource.currentUser;
+    if (firebaseUser != null) {
+      await _userSource.blockUser(firebaseUser.uid, targetUid);
+    }
+  }
+
+  @override
+  Future<void> unblockUser(String targetUid) async {
+    final firebaseUser = _authSource.currentUser;
+    if (firebaseUser != null) {
+      await _userSource.unblockUser(firebaseUser.uid, targetUid);
+    }
+  }
+
+  @override
+  Future<void> muteUser(String targetUid) async {
+    final firebaseUser = _authSource.currentUser;
+    if (firebaseUser != null) {
+      await _userSource.muteUser(firebaseUser.uid, targetUid);
+    }
+  }
+
+  @override
+  Future<void> unmuteUser(String targetUid) async {
+    final firebaseUser = _authSource.currentUser;
+    if (firebaseUser != null) {
+      await _userSource.unmuteUser(firebaseUser.uid, targetUid);
     }
   }
 }

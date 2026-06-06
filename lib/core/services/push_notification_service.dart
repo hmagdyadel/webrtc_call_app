@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../app/router/app_router.dart';
 
 import 'package:flutter/foundation.dart';
@@ -19,6 +20,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   } catch (e) {
     debugPrint('Firebase already initialized or error: $e');
   }
+
+  final prefs = await SharedPreferences.getInstance();
+  final mutedUsers = prefs.getStringList('muted_users') ?? [];
+  final senderId = message.data['senderId'];
+
+  if (senderId != null && mutedUsers.contains(senderId)) {
+    debugPrint('Background message skipped: sender $senderId is muted.');
+    return;
+  }
+
   _markMessageAsDelivered(message.data);
 
   final title = message.notification?.title ?? message.data['title'] ?? 'New Message';
@@ -249,6 +260,15 @@ class PushNotificationService {
   }
 
   Future<void> _showLocalNotification(RemoteMessage message) async {
+    final prefs = await SharedPreferences.getInstance();
+    final mutedUsers = prefs.getStringList('muted_users') ?? [];
+    final senderId = message.data['senderId'];
+
+    if (senderId != null && mutedUsers.contains(senderId)) {
+      debugPrint('Foreground message skipped: sender $senderId is muted.');
+      return;
+    }
+
     final title = message.notification?.title ?? message.data['title'] ?? 'New Message';
     final body = message.notification?.body ?? message.data['body'] ?? '';
 

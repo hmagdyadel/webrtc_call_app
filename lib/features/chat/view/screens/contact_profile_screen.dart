@@ -11,11 +11,13 @@ import '../../../stories/view/screens/story_viewer_screen.dart';
 import '../../../stories/view/widgets/story_ring_avatar.dart';
 import '../../../stories/viewmodel/story_cubit.dart';
 import '../../../stories/viewmodel/story_state.dart';
+import 'chat_media_screen.dart';
 
 class ContactProfileScreen extends StatelessWidget {
   final String userId;
+  final String? chatId;
 
-  const ContactProfileScreen({super.key, required this.userId});
+  const ContactProfileScreen({super.key, required this.userId, this.chatId});
 
   @override
   Widget build(BuildContext context) {
@@ -211,58 +213,92 @@ class ContactProfileScreen extends StatelessWidget {
   Widget _buildActionsCard(BuildContext context, UserModel user) {
     final colors = context.sawaColors;
     
-    void showActionSnackbar(String action) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$action is not fully implemented yet.', style: TextStyle(color: colors.text1)), backgroundColor: colors.surface),
-      );
-    }
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        final currentUser = authState.whenOrNull(authenticated: (u) => u);
+        if (currentUser == null) return const SizedBox.shrink();
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildActionTile(
-            context: context,
-            title: 'Media, links, and docs',
-            icon: Icons.photo_library_outlined,
-            onTap: () => showActionSnackbar('Media Library'),
-          ),
-          Divider(color: colors.divider),
-          _buildActionTile(
-            context: context,
-            title: 'Search in chat',
-            icon: Icons.search,
-            onTap: () => showActionSnackbar('Search'),
-          ),
-          Divider(color: colors.divider),
-          _buildActionTile(
-            context: context,
-            title: 'Mute notifications',
-            icon: Icons.notifications_off_outlined,
-            onTap: () => showActionSnackbar('Mute'),
-          ),
-          Divider(color: colors.divider),
-          _buildActionTile(
-            context: context,
-            title: 'Block ${user.name.isNotEmpty ? user.name : 'User'}',
-            icon: Icons.block,
-            color: Colors.red,
-            onTap: () => showActionSnackbar('Block'),
-          ),
-        ],
-      ),
+        final isBlocked = currentUser.blockedUsers.contains(user.id);
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            bool isMuted = currentUser.mutedUsers.contains(user.id);
+
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildActionTile(
+                    context: context,
+                    title: 'Media, links, and docs',
+                    icon: Icons.photo_library_outlined,
+                    onTap: () {
+                      if (chatId != null) {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => ChatMediaScreen(chatId: chatId!)));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Chat not found', style: TextStyle(color: colors.text1)), backgroundColor: colors.surface));
+                      }
+                    },
+                  ),
+                  Divider(color: colors.divider),
+                  _buildActionTile(
+                    context: context,
+                    title: 'Search in chat',
+                    icon: Icons.search,
+                    onTap: () {
+                      Navigator.pop(context, true);
+                    },
+                  ),
+                  Divider(color: colors.divider),
+                  _buildActionTile(
+                    context: context,
+                    title: isMuted ? 'Unmute notifications' : 'Mute notifications',
+                    icon: isMuted ? Icons.notifications_off : Icons.notifications_active_outlined,
+                    onTap: () async {
+                      await context.read<AuthCubit>().toggleMute(user.id);
+                      final nowMuted = !isMuted;
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(nowMuted ? 'Notifications muted' : 'Notifications unmuted', style: TextStyle(color: colors.text1)),
+                            backgroundColor: colors.surface,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  Divider(color: colors.divider),
+                  _buildActionTile(
+                    context: context,
+                    title: isBlocked ? 'Unblock ${user.name.isNotEmpty ? user.name : 'User'}' : 'Block ${user.name.isNotEmpty ? user.name : 'User'}',
+                    icon: Icons.block,
+                    color: isBlocked ? colors.text2 : Colors.red,
+                    onTap: () async {
+                      if (isBlocked) {
+                        await context.read<AuthCubit>().unblockUser(user.id);
+                      } else {
+                        await context.read<AuthCubit>().blockUser(user.id);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

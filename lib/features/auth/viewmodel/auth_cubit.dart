@@ -122,8 +122,48 @@ class AuthCubit extends Cubit<AuthState> {
       );
       emit(AuthState.authenticated(user: updatedUser));
     } catch (e) {
-      // Could emit an error state or handle it via a callback
       rethrow;
     }
+  }
+
+  Future<void> blockUser(String targetUid) async {
+    await _repository.blockUser(targetUid);
+    final user = await _repository.getCurrentUser();
+    if (user != null) {
+      emit(AuthState.authenticated(user: user));
+    }
+  }
+
+  Future<void> unblockUser(String targetUid) async {
+    await _repository.unblockUser(targetUid);
+    final user = await _repository.getCurrentUser();
+    if (user != null) {
+      emit(AuthState.authenticated(user: user));
+    }
+  }
+
+  bool isMuted(String targetUid) {
+    return state.maybeWhen(
+      authenticated: (user) => user.mutedUsers.contains(targetUid),
+      orElse: () => false,
+    );
+  }
+
+  Future<void> toggleMute(String targetUid) async {
+    await state.maybeWhen(
+      authenticated: (user) async {
+        final isMuted = user.mutedUsers.contains(targetUid);
+        if (isMuted) {
+          await _repository.unmuteUser(targetUid);
+        } else {
+          await _repository.muteUser(targetUid);
+        }
+        final updatedUser = await _repository.getCurrentUser();
+        if (updatedUser != null) {
+          emit(AuthState.authenticated(user: updatedUser));
+        }
+      },
+      orElse: () {},
+    );
   }
 }

@@ -17,6 +17,16 @@ _UserModel _$UserModelFromJson(Map<String, dynamic> json) => _UserModel(
   isOnline: json['isOnline'] as bool? ?? false,
   lastSeen: const TimestampConverter().fromJson(json['last_seen']),
   createdAt: const TimestampConverter().fromJson(json['created_at']),
+  blockedUsers:
+      (json['blockedUsers'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  mutedUsers:
+      (json['mutedUsers'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
@@ -31,4 +41,6 @@ Map<String, dynamic> _$UserModelToJson(_UserModel instance) =>
       'isOnline': instance.isOnline,
       'last_seen': const TimestampConverter().toJson(instance.lastSeen),
       'created_at': const TimestampConverter().toJson(instance.createdAt),
+      'blockedUsers': instance.blockedUsers,
+      'mutedUsers': instance.mutedUsers,
     };
