@@ -11,7 +11,13 @@ import '../../../auth/viewmodel/auth_state.dart';
 import '../../data/models/chat_model.dart';
 import '../../viewmodel/chat_cubit.dart';
 import '../../viewmodel/chat_state.dart';
-
+import '../../../stories/viewmodel/story_cubit.dart';
+import '../../../stories/view/screens/stories_tab.dart';
+import '../../../stories/view/screens/story_viewer_screen.dart';
+import '../../../stories/view/widgets/story_ring_avatar.dart';
+import '../../../stories/data/models/story_model.dart';
+import '../../../stories/viewmodel/story_state.dart';
+import '../../../../core/widgets/sawa_empty_state.dart';
 class HomeScreen extends StatefulWidget {
   final String userId;
   const HomeScreen({super.key, required this.userId});
@@ -23,23 +29,26 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0; 
   late final ChatCubit _chatCubit;
+  late final StoryCubit _storyCubit;
 
   @override
   void initState() {
     super.initState();
     _chatCubit = getIt<ChatCubit>()..loadChats(widget.userId);
+    _storyCubit = getIt<StoryCubit>()..loadStories();
   }
 
   @override
   void dispose() {
     _chatCubit.close();
+    _storyCubit.close();
     super.dispose();
   }
 
   late final List<Widget> _screens = [
     _ChatsTab(userId: widget.userId),
+    StoriesTab(userId: widget.userId),
     const _CallsTab(),
-    const _ExploreTab(),
     const _ContactsTab(),
     const _MeTab(),
   ];
@@ -48,8 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final colors = context.sawaColors;
     
-    return BlocProvider.value(
-      value: _chatCubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _chatCubit),
+        BlocProvider.value(value: _storyCubit),
+      ],
       child: Scaffold(
         backgroundColor: colors.background,
         body: _screens[_currentIndex],
@@ -70,14 +82,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Chats',
               ),
               BottomNavigationBarItem(
+                icon: Icon(Icons.auto_awesome_outlined),
+                activeIcon: Icon(Icons.auto_awesome),
+                label: 'Stories',
+              ),
+              BottomNavigationBarItem(
                 icon: Icon(Icons.phone_outlined),
                 activeIcon: Icon(Icons.phone),
                 label: 'Calls',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.explore_outlined),
-                activeIcon: Icon(Icons.explore),
-                label: 'Explore',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.contacts_outlined),
@@ -127,18 +139,28 @@ class _ChatsTab extends StatelessWidget {
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
             ),
-            loaded: (chats) => chats.isEmpty
-                ? Center(
-                    child: Text('No chats yet',
-                        style: TextStyle(color: colors.text3)))
-                : ListView.builder(
-                    itemCount: chats.length,
-                    itemBuilder: (context, index) {
-                      final chat = chats[index];
-                      final otherId = chat.members.firstWhere((m) => m != userId);
-                      return _ChatTile(chat: chat, currentUserId: userId, otherId: otherId);
-                    },
-                  ),
+            loaded: (chats) => Column(
+              children: [
+                Expanded(
+                  child: chats.isEmpty
+                      ? SawaEmptyState(
+                          icon: Icons.chat_bubble_outline,
+                          title: 'No conversations yet',
+                          subtitle: 'Start chatting with friends and family',
+                          actionLabel: 'New Chat',
+                          onAction: () => context.push(AppRoutePaths.newChat),
+                        )
+                      : ListView.builder(
+                          itemCount: chats.length,
+                          itemBuilder: (context, index) {
+                            final chat = chats[index];
+                            final otherId = chat.members.firstWhere((m) => m != userId);
+                            return _ChatTile(chat: chat, currentUserId: userId, otherId: otherId);
+                          },
+                        ),
+                ),
+              ],
+            ),
             error: (msg) => Center(
                 child: Text(msg, style: const TextStyle(color: AppColors.missed))),
           );
@@ -181,17 +203,44 @@ class _ChatTile extends StatelessWidget {
         }
 
         return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: AppColors.primary,
-            backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
-            child: avatarUrl.isEmpty
-                ? (displayName.isNotEmpty && displayName != '...' && !RegExp(r'^[0-9+]+$').hasMatch(displayName)
-                    ? Text(
-                        displayName[0].toUpperCase(),
-                        style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
-                      )
-                    : const Icon(Icons.person, color: Colors.white, size: 24))
-                : null,
+          leading: BlocBuilder<StoryCubit, StoryState>(
+            builder: (context, storyState) {
+              List<StoryModel> userStories = [];
+              storyState.whenOrNull(
+                loaded: (stories, isUploading, progress) {
+                  userStories = stories.where((s) => s.userId == otherId).toList();
+                },
+              );
+
+              return StoryRingAvatar(
+                avatarUrl: avatarUrl,
+                userName: displayName,
+                stories: userStories,
+                currentUserId: currentUserId,
+                radius: 24,
+                onTap: () {
+                  if (userStories.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => BlocProvider.value(
+                          value: context.read<StoryCubit>(),
+                          child: StoryViewerScreen(
+                            stories: userStories,
+                            currentUserId: currentUserId,
+                          ),
+                        ),
+                      ),
+                    );
+                  } else {
+                    context.push(
+                      '/home/chat/${chat.id}',
+                      extra: {'otherUserId': otherId},
+                    );
+                  }
+                },
+              );
+            },
           ),
           title: Text(
             displayName,
@@ -266,18 +315,15 @@ class _CallsTab extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(title: const Text('Calls')),
-      body: Center(child: Text('No calls yet', style: TextStyle(color: colors.text3))),
-    );
-  }
-}
-
-class _ExploreTab extends StatelessWidget {
-  const _ExploreTab();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: context.sawaColors.background,
-      body: Center(child: Text('Explore', style: TextStyle(color: context.sawaColors.text3))),
+      body: Center(
+        child: SawaEmptyState(
+          icon: Icons.phone_outlined,
+          title: 'No calls yet',
+          subtitle: 'Your call history will appear here',
+          actionLabel: 'Start Call',
+          onAction: () {},
+        ),
+      ),
     );
   }
 }
@@ -286,9 +332,19 @@ class _ContactsTab extends StatelessWidget {
   const _ContactsTab();
   @override
   Widget build(BuildContext context) {
+    final colors = context.sawaColors;
     return Scaffold(
-      backgroundColor: context.sawaColors.background,
-      body: Center(child: Text('Contacts', style: TextStyle(color: context.sawaColors.text3))),
+      backgroundColor: colors.background,
+      appBar: AppBar(title: const Text('Contacts')),
+      body: Center(
+        child: SawaEmptyState(
+          icon: Icons.contacts_outlined,
+          title: 'No contacts found',
+          subtitle: 'Add contacts to start chatting on Sawa',
+          actionLabel: 'Add Contact',
+          onAction: () {},
+        ),
+      ),
     );
   }
 }

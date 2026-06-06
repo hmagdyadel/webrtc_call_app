@@ -20,6 +20,27 @@
 | 17 | Multimedia Chat (Audio 2.0, Location 2.0, Native Contacts) | ✅ Complete |
 | 18 | Unified Dynamic Theme System (V2) | ✅ Complete |
 | 19 | Image Editing, Stickers & Light Theme Polish | ✅ Complete |
+| 20 | Local Sticker Storage, Picker & Pro Editing UX | ✅ Complete |
+| 21 | Stories & Reels (WhatsApp-style Status) | 🏗️ Next |
+
+---
+
+## Phase 21 — Stories & Reels (WhatsApp Status) ✅
+
+### 21a: Data Architecture ✅
+- **Story Model**: Implemented `StoryModel` (id, userId, mediaUrl, type: image/video/text, timestamp, viewers).
+- **Auto-Expiry**: Real-time Firebase listeners automatically filter stories older than 24 hours.
+
+### 21b: Story Creation Workflow ✅
+- **Editor Integration**: Reused `ProImageEditor` with custom `ImageEditPreviewScreen` and `CustomVideoPreviewScreen`.
+- **Keyboard-integrated Emoji**: Emoji picker toggles seamlessly inside the caption text field (WhatsApp style).
+- **Upload Service**: Background upload to Firebase Storage, allowing optimistic UI updates without blocking screens.
+
+### 21c: Stories UI (WhatsApp-style) ✅
+- **Status Bar**: Ring-based avatars in "My Status" and recent updates.
+- **Story Viewer**: Full-screen immersive viewer with segmented progress bars.
+- **Optimistic Avatar Loading**: Real-time progress indicator directly overlaid on the user's avatar during background uploads.
+- **Empty States**: Premium `SawaEmptyState` integrated for new users with no stories or chats.
 
 ---
 
@@ -142,5 +163,6 @@
 - [x] **Image Edit Flow**: Camera/Gallery → Direct Crop → Custom AppBar Send → Chat.
 - [x] **Sticker Management**: Save received stickers, pick from local library, and send instantly.
 - [x] **Editor Visuals**: AppBar matches Sawa's branded theme (Purple in Light, Blue-Dark in Dark).
+- [x] **Stories Feature**: Immersive WhatsApp-style stories with background uploads and emoji-picker integrated text fields.
 
-*Last updated: May 11, 2026 — Branch: main*
+*Last updated: June 2026 — Branch: main*

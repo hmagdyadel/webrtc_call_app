@@ -34,6 +34,7 @@ import 'package:sawa/features/contacts/data/repositories/contacts_repository.dar
     as _i765;
 import 'package:sawa/features/contacts/data/sources/contacts_remote_source.dart'
     as _i93;
+import 'package:sawa/features/stories/viewmodel/story_cubit.dart' as _i1055;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -48,6 +49,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => appModule.prefs,
       preResolve: true,
     );
+    gh.factory<_i1055.StoryCubit>(() => _i1055.StoryCubit());
     gh.singleton<_i611.DioClient>(() => _i611.DioClient());
     gh.singleton<_i724.ThemeCubit>(() => _i724.ThemeCubit());
     gh.lazySingleton<_i19.PushNotificationService>(

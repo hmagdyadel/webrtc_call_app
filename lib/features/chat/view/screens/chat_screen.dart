@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/widgets/sawa_empty_state.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../viewmodel/message_cubit.dart';
 import '../../viewmodel/message_state.dart';
@@ -735,7 +736,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageList() {
-    final colors = context.sawaColors;
     return BlocBuilder<MessageCubit, MessageState>(
       bloc: _messageCubit,
       builder: (context, state) {
@@ -755,23 +755,11 @@ class _ChatScreenState extends State<ChatScreen> {
             });
 
             if (allMessages.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.chat_bubble_outline_rounded,
-                        size: 64, color: AppColors.primary.withValues(alpha: 0.3)),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Start the conversation 💬',
-                      style: TextStyle(color: colors.text3, fontSize: 16),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'ابدأ المحادثة',
-                      style: TextStyle(color: colors.text3, fontSize: 14),
-                    ),
-                  ],
+              return const Center(
+                child: SawaEmptyState(
+                  icon: Icons.mark_chat_unread_outlined,
+                  title: 'Say hello! 👋',
+                  subtitle: 'Send your first message to start the conversation',
                 ),
               );
             }

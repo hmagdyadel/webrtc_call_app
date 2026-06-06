@@ -27,6 +27,7 @@
 - 💬 **Multimedia Chat** — Text, Images, Videos, Audio (with waveforms), Location, and Native Contacts.
 - ✨ **Sticker & Emoji Picker** — Built-in local sticker library, emoji integration, and WhatsApp-style floating sticker rendering.
 - 🖼️ **Pro Image Editor** — WhatsApp-style workflow: launches directly into crop mode, custom themed AppBars with recipient status, and streamlined "one-tap" send flow.
+- 📸 **Stories (Status)** — WhatsApp-style status updates with background media uploading, emoji-integrated captioning, and immersive ring avatars.
 - 📞 **Voice & Video Calls** — WebRTC-powered high-quality calling (In Progress).
 - 🔗 **QR Code Discovery** — Scan to add contacts instantly.
 - 🗺️ **Location Sharing** — Coordinate-based sharing with native map deep linking.
@@ -103,6 +104,7 @@ flutter run
 - [x] **QR Discovery** — Personal QR cards & scanning.
 - [x] **Multimedia Chat** — Audio 2.0, Location 2.0, Files, & Native Contacts.
 - [x] **Unified Theme System** — Professional Light/Dark mode migration.
+- [x] **Stories & Reels** — WhatsApp-style status feature with Pro Editor.
 - [ ] **Voice & Video Calls** — WebRTC implementation.
 - [ ] **Push Notifications** — Firebase Cloud Messaging integration.
 

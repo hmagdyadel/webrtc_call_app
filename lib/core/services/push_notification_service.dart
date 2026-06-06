@@ -316,10 +316,16 @@ class PushNotificationService {
 
   Future<void> _updateTokenInFirestore(String token) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'fcmToken': token,
-      });
+    if (user == null) return;
+    try {
+      // Use set+merge so this works even if the user document doesn't exist yet
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+        {'fcmToken': token},
+        SetOptions(merge: true),
+      );
+    } catch (e) {
+      // Log but don't rethrow — a failed FCM token save must never trigger sign-out
+      debugPrint('Warning: Could not save FCM token to Firestore: $e');
     }
   }
 }
